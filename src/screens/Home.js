@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, TextInput, ScrollView } from "react-native";
-import { styleshome } from "../styles/styleshome";
+import { styleshome } from "../src/styles/styleshome";
 import CustomModal from "./components/Modal"; 
 
 // Importaciones de Firebase
-import { db } from "../firebaseConfig"; 
+import { db } from "../src/firebaseConfig"; 
 import { collection, query, getDocs, orderBy, addDoc, where } from "firebase/firestore";
 
 export default function Home() {

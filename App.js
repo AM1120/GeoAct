@@ -7,7 +7,9 @@ import Statistics from './screens/Statistics';
 import Search from './screens/Search';
 import Settings from './screens/Settings';
 import MetaPOA from './screens/MetaPOA';
-
+import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
+import { initializeApp } from 'firebase/app';
+import {firebaseConfig} from "./"
 
 export default function App() {
   const Tab = createBottomTabNavigator();

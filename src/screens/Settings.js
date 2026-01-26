@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch } from "react-native";
-import { styleshome } from "../styles/styleshome";
+import { styleshome } from "../src/styles/styleshome";
 
 export default function Ajustes() {
   const [isDarkMode, setIsDarkMode] = useState(false);

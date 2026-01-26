@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import BarChartComponent from "./components/BarChart";
-import { styleshome } from "../styles/styleshome";
+import { styleshome } from "../src/styles/styleshome";
 
 export default function Statistics() {
   const data = [
