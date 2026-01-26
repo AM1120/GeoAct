@@ -25,7 +25,7 @@ const CustomModal = ({ visible, onClose, title, children }) => {
                             activeOpacity={0.7}
                         >
                             <Image 
-                                source={require("../../assets/close.png")} 
+                                source={require("../../../assets/close.png")} 
                                 style={stylesmodal.closeIcon}
                             />
                         </TouchableOpacity>

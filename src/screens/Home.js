@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Image, TextInput, ScrollView } from "react-native";
-import { styleshome } from "../src/styles/styleshome";
+import { styleshome } from "../../src/styles/styleshome";
 import CustomModal from "./components/Modal"; 
 
 // Importaciones de Firebase
-import { db } from "../src/firebaseConfig"; 
+import { db } from "../../src/firebaseConfig"; 
 import { collection, query, getDocs, orderBy, addDoc, where } from "firebase/firestore";
 
 export default function Home() {
@@ -82,7 +82,7 @@ export default function Home() {
         <Text style={styleshome.title}>Bienvenido</Text>
         
         <TouchableOpacity style={styleshome.buttonRegister} onPress={() => setMo(true)}>
-          <Image source={require('../assets/IconSuma.png')} style={{width: 30, height: 30}} />
+          <Image source={require('../../assets/IconSuma.png')} style={{width: 30, height: 30}} />
         </TouchableOpacity>
 
         <CustomModal 

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch } from "react-native";
-import { styleshome } from "../src/styles/styleshome";
+import { styleshome } from "../../src/styles/styleshome";
 
 export default function Ajustes() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -14,7 +14,7 @@ export default function Ajustes() {
         {/* Sección de Perfil */}
         <View style={{ alignItems: 'center', marginTop: 20 }}>
           <Image 
-            source={require('../assets/IconAjuste.png')} 
+            source={require('../../assets/IconAjuste.png')} 
             style={styleshome.profileImage} 
           />
           <Text style={styleshome.userName}>Juan Pérez</Text>

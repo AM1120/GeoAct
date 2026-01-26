@@ -1,68 +1,55 @@
-import React from 'react';
-import { View, Text, Image } from 'react-native';
-import { NavigationContainer, TabActions } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import Home from './screens/Home';
-import Statistics from './screens/Statistics';
-import Search from './screens/Search';
-import Settings from './screens/Settings';
-import MetaPOA from './screens/MetaPOA';
-import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth"
-import { initializeApp } from 'firebase/app';
-import {firebaseConfig} from "./"
+import React, { useEffect, useState } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './src/firebaseConfig';
 
-export default function App() {
-  const Tab = createBottomTabNavigator();
-  function MyTab() {
-  return (
-    <Tab.Navigator initialRouteName='Home'>
-      <Tab.Screen 
-      name="Statistics" 
-      component={Statistics} 
-      options={{
-        tabBarIcon: ({color, size})=>(
-          <Image source={require('./assets/Icongrafic.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} />
+// Importa tus pantallas
+import login from './src/screens/Authentication/login'; 
+import signup from './src/screens/Authentication/signup'
+import MyTab from './src/navigation/MainTab'; // Mueve tus tabs a otro archivo para limpiar
 
-      <Tab.Screen 
-      name="MetaPOA" 
-      component={MetaPOA}
-      options={{
-        tabBarIcon: ({color, size})=>(
-          <Image source={require('./assets/IconPOA.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} /> 
+const Stack = createStackNavigator();
+const AuthStack = createStackNavigator();
 
-      <Tab.Screen 
-      name="Home" 
-      component={Home}
-      options={{
-        tabBarIcon: ({color, size})=>(
-          <Image source={require('./assets/IconSuma.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} />
-      
-      <Tab.Screen 
-      name="Search" 
-      component={Search}
-      options={{
-        tabBarIcon: ({color, size})=>(
-          <Image source={require('./assets/IconLupa.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} />
-
-      <Tab.Screen 
-      name="Settings" 
-      component={Settings}
-      options={{
-        tabBarIcon: ({color, size})=>(
-          <Image source={require('./assets/IconAjuste.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} /> 
-    </Tab.Navigator>
+function AuthNavigator (){
+  return(
+    <AuthStack.Navigator screenOptions={{headerShown:false}}>
+      <AuthStack.Screen name="login" component={login}/>
+      <AuthStack.Screen name="signup" component={signup}/>
+    </AuthStack.Navigator>
   );
 }
+
+export default function App() {
+  // 1. Creamos un estado para saber si el usuario entró
+  const [user, setUser] = useState(null);
+
+  useEffect(()=>{
+    const unsubscribe = onAuthStateChanged(auth, (usuarioFirebase) =>{
+      if (usuarioFirebase){
+        setUser(usuarioFirebase);
+      } else {
+        setUser(null);
+      }
+    });
+    return unsubscribe;
+  }, [])
+
 
 return (
     <NavigationContainer>
-      <MyTab />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {user ? (
+          // Si hay usuario, mostramos el Tab Navigator
+          <Stack.Screen name="MainApp" component={MyTab} />
+        ) : (
+          // Si no, mostramos el Login
+          <Stack.Screen name="Auth" component={AuthNavigator} />
+        )}
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }
+
 
