@@ -6,10 +6,12 @@ import {
 import { stylesauth } from '../../styles/stylesauth';
 
 // Importamos la configuración que ya tienes lista
-import { auth } from '../../firebaseConfig'; 
+import { db, auth } from '../../firebaseConfig';
+import {doc, setDoc} from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function Signup({ navigation }) {
+  const [nombre, setNombre] = useState ('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -26,16 +28,26 @@ export default function Signup({ navigation }) {
       return;
     }
 
+
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        Alert.alert("¡Éxito!", "Cuenta creada para Registro Civil.");
-        console.log('Usuario registrado:', userCredential.user.email);
-        // Volvemos al login para que el usuario inicie sesión formalmente
-        navigation.goBack(); 
-      })
+  
+    .then(async (userCredential) => {
+    
+      const user = userCredential.user;
+    // GUARDAR PERFIL AUTOMÁTICAMENTE
+    await setDoc(doc(db, "users", user.uid, "profile", "info"), {
+      nombre: nombre, // Este estado debes agregarlo al formulario
+      email: email,
+      rol: "Doctor/Registrador",
+      createdAt: new Date()
+    });
+
+    Alert.alert("Éxito", "Usuario y Perfil creados.");
+    navigation.goBack();
+})
       .catch(error => {
-        Alert.alert("Error de Registro", "No se pudo crear la cuenta. Revisa los datos.");
-        console.log(error.message);
+        console.log(error);
+        Alert.alert("Error", "No se pudo registrar.");
       });
   };
 
@@ -48,7 +60,18 @@ export default function Signup({ navigation }) {
         <Text style={stylesauth.welcomeText}>Registro</Text>
 
         <View style={stylesauth.card}>
-          {/* Campo Email (Icono de sobre según tu boceto) */}
+          {/* Campo Nombre */}
+          <View style={stylesauth.inputGroup}>
+            <Image source={require('../../../assets/user.png')} style={stylesauth.icon} />
+            <TextInput
+              style={stylesauth.input}
+              placeholder="Nombre Completo"
+              value={nombre}
+              onChangeText={setNombre}
+            />
+          </View>
+
+          {/* Campo Email */}
           <View style={stylesauth.inputGroup}>
             <Image source={require('../../../assets/gmail.png')} style={stylesauth.icon} />
             <TextInput
@@ -73,7 +96,7 @@ export default function Signup({ navigation }) {
             />
           </View>
 
-          {/* Campo Confirmar Contraseña */}
+          {/* Confirmar Contraseña */}
           <View style={stylesauth.inputGroup}>
             <Image source={require('../../../assets/password.png')} style={stylesauth.icon} />
             <TextInput
@@ -85,16 +108,13 @@ export default function Signup({ navigation }) {
             />
           </View>
 
-          {/* Botón de Confirmar Registro */}
           <TouchableOpacity style={stylesauth.buttonBlue} onPress={handleSignup}>
             <Text style={stylesauth.buttonText}>Registrarse</Text>
           </TouchableOpacity>
 
-          {/* Botón para volver al Login */}
           <TouchableOpacity style={{ marginTop: 15 }} onPress={() => navigation.goBack()}>
             <Text style={stylesauth.forgotText}>¿Ya tienes cuenta? Volver</Text>
           </TouchableOpacity>
-
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

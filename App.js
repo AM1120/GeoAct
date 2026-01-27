@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from './src/firebaseConfig';
+import { View, ActivityIndicator } from 'react-native';
 
 // Importa tus pantallas
 import login from './src/screens/Authentication/login'; 
@@ -24,17 +25,25 @@ function AuthNavigator (){
 export default function App() {
   // 1. Creamos un estado para saber si el usuario entró
   const [user, setUser] = useState(null);
-
-  useEffect(()=>{
-    const unsubscribe = onAuthStateChanged(auth, (usuarioFirebase) =>{
-      if (usuarioFirebase){
-        setUser(usuarioFirebase);
-      } else {
-        setUser(null);
-      }
+  const [initializing, setInitializing] = useState(true);
+useEffect(() => {
+    // onAuthStateChanged detecta automáticamente la sesión guardada en AsyncStorage
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      if (initializing) setInitializing(false);
     });
-    return unsubscribe;
-  }, [])
+
+    return unsubscribe; // Limpia el listener
+  }, []);
+
+  // MIENTRAS VERIFICA LA SESIÓN, MUESTRA UN CARGANDO
+  if (initializing) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#C2D5E8' }}>
+        <ActivityIndicator size="large" color="#9BB1A4" />
+      </View>
+    );
+  }
 
 
 return (

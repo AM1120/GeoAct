@@ -5,16 +5,19 @@ import CustomModal from "./components/Modal";
 
 // Importaciones de Firebase
 import { db } from "../../src/firebaseConfig"; 
-import { collection, query, getDocs, orderBy, addDoc, where } from "firebase/firestore";
+import { auth } from "../../src/firebaseConfig";
+import { collection, query, getDocs, orderBy, addDoc, onSnapshot, doc, getDoc, where } from "firebase/firestore";
 
 export default function Home() {
   const [mo, setMo] = useState(false);
   const [opciones, setOpciones] = useState([]);
-  const [Registrador, setRegistrador] = useState([]);
   const [selectedOption, setSelectedOption] = useState("Seleccionar...");
   const [selectedRegistrador, setSelectedRegistrador] = useState("Seleccionar...");
   const [mostrarListado, setMostrarListado] = useState(false);
-  const [mostrarListadoReg, setMostrarListadoReg] = useState(false);
+
+  //
+  const [editId, setEditId] = useState(null);
+  const [totalActas, setTotalActas] = useState(0);
   
   const [formData, setFormData] = useState({
     tipoActa: '',
@@ -29,34 +32,69 @@ export default function Home() {
     setFormData({ ...formData, [name]: value });
   }
 
+  useEffect(() =>{
+    const q=query(collection(db, "registro_actas"));
+    const unsubscribe =onSnapshot(q, (snapshot) => {
+      setTotalActas(snapshot.size);
+    });
+    return () => unsubscribe();
+  }, []);
+
+useEffect(() => {
+  const cargarNombreUsuario = async () => {
+    const user = auth.currentUser;
+
+    if (!user) return;
+
+    try {
+      const userRef = doc(db, "users", user.uid, "profile", "info");
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const nombre = userSnap.data().nombre;
+
+        setSelectedRegistrador(nombre);
+        setFormData(prev => ({
+          ...prev,
+          registrador: nombre,
+        }));
+      }
+    } catch (error) {
+      console.error("Error al obtener nombre del usuario:", error);
+    }
+  };
+
+  cargarNombreUsuario();
+}, []);
+
+  const cerrarModal = () => {
+    setMo(false);
+    setEditId(null);
+    setFormData({ tipoActa: '', ciudadano: '', nroActa: '', nroTomo: '', registrador: usuario ? usuario.displayName || '':'' , descripcion: '' });
+    setSelectedOption("Seleccionar...");
+    setSelectedRegistrador(usuario ? usuario.displayName || '':'');
+  };
+
+
   const guardarDatos = async() => {
     try {
-      if (!formData.tipoActa || !formData.ciudadano || !formData.nroActa || !formData.nroTomo || !formData.registrador) {
-        alert("Por favor, completa los campos obligatorios.");
+      if (!formData.tipoActa || !formData.ciudadano || !formData.nroActa) {
+        alert("Completa los campos obligatorios.");
         return;
       }
 
-      const actaRef =collection(db, "registro_actas");
-      const qDuplica = query(actaRef,
-        where("tipoActa", "==", formData.tipoActa),
-        where("nroActa", "==", formData.nroActa),
-        where("nroTomo", "==", formData.nroTomo)
-      );
-      const snapshotDuplica = await getDocs(qDuplica);
-      if (!snapshotDuplica.empty) {
-        alert("Ya existe un acta con ese Nro. de Acta en ese Nro. de Tomo.");
-        return;
+      if (editId) {
+        // MODO EDICIÓN
+        const docRef = doc(db, "registro_actas", editId);
+        await updateDoc(docRef, { ...formData, updatedAt: new Date() });
+        alert("Acta actualizada correctamente.");
+      } else {
+        // MODO CREACIÓN (Tu lógica de duplicados actual...)
+        await addDoc(collection(db, "registro_actas"), { ...formData, time: new Date() });
+        alert("Acta guardada.");
       }
-
-      const docRef = await addDoc(collection(db, "registro_actas"), {
-        ...formData,
-        time: new Date(),
-      });
-      alert("Datos guardados exitosamente.");
-      setMo(false);
-    } catch (error) {
-      console.error("Error al guardar: ", error);
-    }
+      cerrarModal();
+    } catch (error) { console.error(error); }
   }
 
   useEffect(() => {
@@ -66,16 +104,14 @@ export default function Home() {
         const SnapshotActas = await getDocs(qActas);
         setOpciones(SnapshotActas.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-        const qRegistradores = query(collection(db, "nombre_registrador"), orderBy("nombre", "asc"));
+        const qRegistradores = query(collection(db, "users"), orderBy("nombre", "asc"));
         const SnapshotRegistrador = await getDocs(qRegistradores);
-        setRegistrador(SnapshotRegistrador.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       } catch (error) {
         console.error("Error al obtener datos: ", error);
       }
     };
     obtenerDatos();
   }, []);
-
   return (
     <View style={styleshome.body}>
       <View style={styleshome.container}>
@@ -84,6 +120,13 @@ export default function Home() {
         <TouchableOpacity style={styleshome.buttonRegister} onPress={() => setMo(true)}>
           <Image source={require('../../assets/IconSuma.png')} style={{width: 30, height: 30}} />
         </TouchableOpacity>
+        
+        <View style={styleshome.totalCard}>
+        <Text style={styleshome.cardLabel}>Actas{"\n"}Totales</Text>
+        <View style={styleshome.numberBadge}>
+          <Text style={styleshome.totalNumber}>{totalActas}</Text>
+        </View>
+      </View>
 
         <CustomModal 
             visible={mo} 
@@ -99,7 +142,6 @@ export default function Home() {
                       style={styleshome.inputField} 
                       onPress={() => {
                         setMostrarListado(!mostrarListado);
-                        setMostrarListadoReg(false);
                       }}
                     >
                         <Text style={styleshome.inputText}>{selectedOption}</Text>
@@ -161,37 +203,10 @@ export default function Home() {
 
                 {/* --- SECCIÓN REGISTRADOR --- */}
                 <View style={{ zIndex: 1000, marginTop: 15 }}>
-                    <Text style={styleshome.label}>Registrador</Text>
-                    <TouchableOpacity 
-                      style={styleshome.inputField} 
-                      onPress={() => {
-                        setMostrarListadoReg(!mostrarListadoReg);
-                        setMostrarListado(false);
-                      }}
-                    >
-                        <Text style={styleshome.inputText}>{selectedRegistrador}</Text>
-                        <Text>{mostrarListadoReg ? "▲" : "▼"}</Text>
-                    </TouchableOpacity>
-
-                    {mostrarListadoReg && (
-                      <View style={styleshome.dropdownContainer}>
-                        <ScrollView nestedScrollEnabled={true} style={{maxHeight: 150}}>
-                          {Registrador.map((Reg) => (
-                            <TouchableOpacity 
-                              key={Reg.id} 
-                              style={styleshome.dropdownItem}
-                              onPress={() => {
-                                setSelectedRegistrador(Reg.nombre);
-                                handleInputChange('registrador', Reg.nombre);
-                                setMostrarListadoReg(false);
-                              }}
-                            >
-                              <Text style={styleshome.inputText}>{Reg.nombre}</Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
-                      </View>
-                    )}
+                    <Text style={styleshome.label}>Registrador Responsable</Text>
+                    <Text style={styleshome.inputField}>
+                      <Text style={styleshome.inputText}>{selectedRegistrador}</Text>
+                    </Text>
                 </View>
 
                 <View style={{ zIndex: 1 }}>
@@ -213,8 +228,6 @@ export default function Home() {
 
             </ScrollView>
         </CustomModal>
-
-        <Text style={styleshome.containerGrey}>Total de Actas</Text>
         <Text style={styleshome.containerBlue}>Gráfica</Text>
       </View>
     </View>

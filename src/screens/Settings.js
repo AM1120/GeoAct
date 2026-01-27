@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch } from "react-native";
 import { styleshome } from "../../src/styles/styleshome";
+import { auth, db } from "../firebaseConfig";
 
 export default function Ajustes() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -51,7 +52,7 @@ export default function Ajustes() {
             <Text style={{ fontSize: 24, color: '#333' }}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => auth.signOut()}>
             <Text style={styleshome.logoutText}>Cerrar Sesión</Text>
           </TouchableOpacity>
           

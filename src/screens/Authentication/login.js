@@ -1,39 +1,24 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image} from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
-import { initializeApp } from 'firebase/app';
-import {firebaseConfig} from '../../firebaseConfig'
-import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth'
-import { auth } from '../../firebaseConfig';
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth'
 import { NavigationContainer } from '@react-navigation/native';
+import { db } from '../../firebaseConfig';
 
 export default function Login({ navigation, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleCreateAccount = () => {
-    createUserWithEmailAndPassword(auth, email, password)
-    .then(() =>{
-        console.log('Cuenta creada')
-        const user = userCredential.user;
-        console.log(user)
-    })
-    .catch(error =>{
-        console.log(error)
-    })
-  }
-
   const handleSignIn = () => {
     signInWithEmailAndPassword(auth, email, password)
-    .then(() =>{
-        console.log('registrado')
-        const user = userCredential.user;
-        console.log(user)
+    .then((userCredential) =>{
+        console.log('Sesión iniciada correctamente:', userCredential.user.email)
     })
     .catch(error =>{
-        console.log(error)
-    })
-  }
+        console.log("Error al iniciar sesión",error.message);
+        alert("credenciales incorrectas");
+    });
+  };
 
   return (
     <SafeAreaView style={stylesauth.container}>
