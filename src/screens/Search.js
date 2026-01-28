@@ -4,12 +4,17 @@ import { collection, query, onSnapshot, orderBy, updateDoc, doc, deleteDoc } fro
 import { db } from "../firebaseConfig";
 import { styleshome } from "../styles/styleshome";
 import { stylesmodal } from "../styles/stylesmodal";
+import {stylesSearch} from "../styles/stylessearch";
 import CustomModal from "./components/Modal";
+import {useNavigation} from "@react-navigation/native";
 
 export default function Search() {
   const [actas, setActas] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedId, setSelectedId] = useState(null); // Para saber qué acta editar/borrar
+  
+  //para la búsqueda
+  const [searchText, setSearchText] = useState ("");
 
   // Estado unificado para el formulario de edición
   const [formData, setFormData] = useState({
@@ -21,12 +26,14 @@ export default function Search() {
   });
 
   //buscador
-  const SearchBar = () => {
-    const [buscar, setBuscar] = useState('');
+  const SearchFil = actas.filter( item => {
+    const nombre = item.ciudadano ? item.ciudadano.toLowerCase() :"";
+    const acta = item.nroActa ? item.nroActa.toString(): "";
+    const tomo = item.nroTomo ? item.nroTomo.toString(): "";
+    const busqueda = searchText.toLowerCase();
 
-    const handleSearch =() => {
-    }
-  }
+    return nombre.includes(busqueda) || acta.includes(busqueda) || tomo.includes(busqueda); 
+  });
 
   useEffect(() => {
     const q = query(collection(db, "registro_actas"), orderBy("time", "desc"));
@@ -97,25 +104,36 @@ export default function Search() {
   };
 
   return (
-     <View style={styleshome.body}>
-          <View style={styleshome.container}>
-            <Text style={styleshome.title}>Bienvenido</Text>
-                    <TouchableOpacity style={styleshome.buttonRegister} onPress={() => setModalVisible(true)}>
-                      <Image source={require('../../assets/searche.png')} style={{width: 40, height: 40, zIndex: 2000}} />
-                    </TouchableOpacity>
-    <ScrollView>
-      {actas.map((item) => (
-        <View key={item.id} style={styleshome.actaCard}>
-          <View style={styleshome.actaInfo}>
-            <Text style={styleshome.actaTipo}>{item.tipoActa}</Text>
-            <Text style={styleshome.actaCiudadano}>{item.ciudadano}</Text>
-            <Text style={styleshome.actaDetalle}>Acta: {item.nroActa} | Tomo: {item.nroTomo}</Text>
-          </View>
-          
+  <View style={styleshome.body}>
+      <View style={styleshome.container}>
+        <Text style={styleshome.title}>Búsqueda</Text>
+            <View style={stylesSearch.searchContainer}>
+              <Image source={(require('../../assets/searche.png'))} style={stylesSearch.searchIcon} />
+              <TextInput
+                style={ stylesSearch.searchInput}
+                placeholder="Busca por nombre, acta o tomo..."
+                value={searchText}
+                onChangeText={setSearchText}/>
+
+              {searchText.length >0 && (
+                <TouchableOpacity onPress={() => setSearchText ("")}>
+                  <Image source={(require('../../assets/close.png'))} style={stylesSearch.searchButtom}/>
+                </TouchableOpacity>
+              )}
+            </View>
+      <ScrollView>
+          {SearchFil.map((item) => (
+            <View key={item.id} style={styleshome.actaCard}>
+              <View style={styleshome.actaInfo}>
+                <Text style={styleshome.actaTipo}>{item.tipoActa}</Text>
+                <Text style={styleshome.actaCiudadano}>{item.ciudadano}</Text>
+                <Text style={styleshome.actaDetalle}>Acta: {item.nroActa} | Tomo: {item.nroTomo}</Text>
+              </View>
+              
           <View style={styleshome.actaActions}>
             <TouchableOpacity onPress={() => handleOpenModal(item)}>
               {/* Usamos un icono de edición o configuración */}
-              <Image source={require('../../assets/close.png')} style={styleshome.actionIcon} />
+              <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon} />
             </TouchableOpacity>
           </View>
         </View>
@@ -164,14 +182,14 @@ export default function Search() {
           />
         <View style={{flexDirection:'row', justifyContent:'space-between', marginTop:15,zIndex:1}}>
           <TouchableOpacity 
-            style={[styleshome.buttonGuardar, { backgroundColor:'#FF4444', width:'40%' }]} 
+            style={[styleshome.buttonGuardar, { backgroundColor:'#ee5454', width:'40%' }]} 
             onPress={handleDelete}
           >
             <Text style={styleshome.buttonText}>Eliminar Acta</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={[styleshome.buttonGuardar, {backgroundColor: '#38a704', width:'40%' }]} 
+            style={[styleshome.buttonGuardar, {backgroundColor: '#81d659', width:'40%' }]} 
             onPress={handleUpdate}
           >
             <Text style={styleshome.buttonText}>Guardar Acta</Text>

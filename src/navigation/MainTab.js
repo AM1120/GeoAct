@@ -35,7 +35,7 @@ import MetaPOA from '../screens/MetaPOA';
       component={Home}
       options={{
         tabBarIcon: ({color, size})=>(
-          <Image source={require('../../assets/IconSuma.png')} style={{tintColor: color, width: size, height: size}} />
+          <Image source={require('../../assets/IconHouse.png')} style={{tintColor: color, width: size, height: size}} />
         )}} />
       
       <Tab.Screen 
