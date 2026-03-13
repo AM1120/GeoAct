@@ -5,12 +5,14 @@ import CustomModal from "./components/Modal";
 import { PieChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
 
+const screenWidth = Dimensions.get("window").width;
+
 // Importaciones de Firebase
 import { db } from "../../src/firebaseConfig"; 
 import { auth } from "../../src/firebaseConfig";
 import { collection, query, getDocs, orderBy, addDoc, onSnapshot, doc, getDoc, where, serverTimestamp } from "firebase/firestore";
+import { updateDoc } from "firebase/firestore";
 
-const screenWidth =Dimensions.get("window").width
 export default function Home() {
   const [mo, setMo] = useState(false);
   const [opciones, setOpciones] = useState([]);
@@ -18,17 +20,22 @@ export default function Home() {
   const [selectedRegistrador, setSelectedRegistrador] = useState("Seleccionar...");
   const [mostrarListado, setMostrarListado] = useState(false);
 
+  const fechaActual = new Date();
+  const mesActual = fechaActual.getMonth() + 1;
+  const trimestreActual = Math.floor(mesActual -1)/3 + 1; // Calcula el trimestre actual (1-4)
+
+  const [actasPOA, setActasPOA] = useState([]);
+  const [datosGraficaTrimestre, setDatosGraficaTrimestre] = useState([]);
   //
   const [editId, setEditId] = useState(null);
   const [totalActas, setTotalActas] = useState(0);
   
-
   const [formData, setFormData] = useState({
     tipoActa: '',
     ciudadano: '',
     nroActa: '',
     nroTomo: '',
-    registrador: '',
+    registrador: selectedRegistrador,
     descripcion: '',
   });
 
@@ -55,7 +62,7 @@ useEffect(() => {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        const nombre = userSnap.data().nombre;
+        const nombre = userSnap.data().nombre || "Registrador";
 
         setSelectedRegistrador(nombre);
         setFormData(prev => ({
@@ -75,8 +82,6 @@ useEffect(() => {
     setMo(false);
     setEditId(null);
     setFormData({ tipoActa: '', ciudadano: '', nroActa: '', nroTomo: '', registrador: selectedRegistrador, descripcion: '' });
-    setSelectedOption("Seleccionar...");
-    setSelectedRegistrador(selectedRegistrador);
   };
 
 
@@ -90,12 +95,18 @@ useEffect(() => {
       if (editId) {
         // MODO EDICIÓN
         const docRef = doc(db, "registro_actas", editId);
-        await updateDoc(docRef, { ...formData, time: fechaActual, trimestre: trimestreActual, anio: fechaActual.getFullYear() });
-        Alert.alert("Éxito","Acta actualizada correctamente." + trimestreActual);
+        await updateDoc(docRef, { ...formData, updatedAt: new Date() });
+        alert("Acta actualizada correctamente.");
       } else {
-        // MODO CREACIÓN (Tu lógica de duplicados actual...)
-        await addDoc(collection(db, "registro_actas"), { ...formData, time: fechaActual, trimestre: trimestreActual, anio: fechaActual.getFullYear() });
-        Alert.alert("Éxito","Acta guardada.");
+        // MODO CREACIÓN (lógica de duplicados actual...)
+        await addDoc(collection(db, "registro_actas"), {
+        ...formData,
+        createdAt: serverTimestamp(),
+        mes: mesActual,
+        trimestre: trimestreActual,
+        anio: fechaActual.getFullYear()
+      });
+        alert("Acta guardada.");
       }
       cerrarModal();
     } catch (error) { console.error(error); }
@@ -117,25 +128,42 @@ useEffect(() => {
     obtenerDatos();
   }, []);
 
-  //calcula y carga los datos
-  useEffect (() =>{
-    const q=query(collection(db, "registro_actas"));
-    const unsubscribe =onSnapshot(q,(snapshot) =>{
-      const actasCargadas =[];
-      snapshot.forEach (doc => {
-        actasCargadas.push({id: doc.id, ...doc.data()});
-      });
-      setActasPOA(actasCargadas); //guarda las actas
-      setTotalActas(snapshot.size) //actualiza el contador
+  const CalcularDatosTrimestre = (actas) => {
 
-      //calcula aquí los dtaos de la gráfica
-      setDatosGraficaTrimestre(calcularDatosTrimestres(actasCargadas));
+    const conteo ={};
+    actas.forEach((acta) => {
+      if (!conteo[acta.tipoActa]) {
+        conteo[acta.tipoActa] = 0;
+      }
+      conteo [acta.tipoActa]++;
     });
-    return () => unsubscribe
-  }, []);
 
-// --- FUNCIÓN PARA CALCULAR DATOS DE TRIMESTRES (POA) ---
+    return Object.keys(conteo).map((tipo, index) => ({
+    name: tipo,
+    population: conteo[tipo],
+    color: ["#4F81BD","#C0504D","#9BBB59","#8064A2"][index % 4],
+    legendFontColor: "#333",
+    legendFontSize: 12
+  }));
 
+};
+
+useEffect(() => {
+  const mesActual = new Date(). getMonth() + 1;
+  const trimestreActual = Math.floor(mesActual -1)/3 + 1;
+
+  const q = query(collection(db, "registro_actas"), where("trimestre", "==", trimestreActual));
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const actasCargadas = [];
+    snapshot.forEach((doc) => {
+      actasCargadas.push({ id: doc.id, ...doc.data() });
+    });
+    setActasPOA(actasCargadas);
+    setDatosGraficaTrimestre(CalcularDatosTrimestre(actasCargadas));
+  });
+
+  return () => unsubscribe();
+}, []);
 
   return (
     <View style={styleshome.body}>
@@ -152,7 +180,7 @@ useEffect(() => {
           <Text style={styleshome.totalNumber}>{totalActas}</Text>
         </View>
       </View>
-    
+
         <CustomModal 
             visible={mo} 
             onClose={() => setMo(false)} 
@@ -253,7 +281,20 @@ useEffect(() => {
 
             </ScrollView>
         </CustomModal>
-        <Text style={styleshome.containerBlue}>Gráfica</Text>
+        <View style={styleshome.containerBlue}>
+        <Text>Gráfica</Text>
+          <PieChart
+            data={datosGraficaTrimestre}
+            width={screenWidth - 40}
+            height={220}
+            chartConfig={{
+              color: () => `#000`
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="5"
+          />
+          </View>
       </View>
     </View>
   );

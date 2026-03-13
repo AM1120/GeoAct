@@ -105,8 +105,9 @@ export default function Search() {
 
   return (
   <View style={styleshome.body}>
+    <Text style={styleshome.title}>Búsqueda</Text>
       <View style={styleshome.container}>
-        <Text style={styleshome.title}>Búsqueda</Text>
+
             <View style={stylesSearch.searchContainer}>
               <Image source={(require('../../assets/searche.png'))} style={stylesSearch.searchIcon} />
               <TextInput

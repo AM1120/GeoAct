@@ -16,6 +16,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.ailen11.geoact",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -24,6 +25,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "owner": "ailen11",
+    "extra": {
+      "eas": {
+        "projectId": "ad5bf988-10bb-4151-8abd-d906aa1cee70"
+      }
     }
   }
 }

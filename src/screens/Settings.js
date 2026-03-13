@@ -8,9 +8,10 @@ export default function Ajustes() {
   const [notifications, setNotifications] = useState(false);
 
   return (
-    <View style={styleshome.body}>
+    <View style={styleshome.body}>        
+    <Text style={styleshome.title}>Ajustes</Text>
       <View style={styleshome.container}>
-        <Text style={styleshome.title}>Ajustes</Text>
+
         
         {/* Sección de Perfil */}
         <View style={{ alignItems: 'center', marginTop: 20 }}>
