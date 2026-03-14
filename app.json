@@ -4,13 +4,13 @@
     "slug": "GeoAct",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/geoacta.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/geoacta.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#c1d2e6"
     },
     "ios": {
       "supportsTablet": true
@@ -18,13 +18,13 @@
     "android": {
       "package": "com.ailen11.geoact",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/geoacta.png",
+        "backgroundColor": "#9BB1A4"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/geoacta.png"
     },
     "owner": "ailen11",
     "extra": {

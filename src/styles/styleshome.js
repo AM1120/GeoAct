@@ -158,17 +158,16 @@ export const styleshome = StyleSheet.create({
         borderBottomColor: '#999',
 },
 totalCard: { 
-    backgroundColor: '#D9D9D9', // Color gris del prototipo
+    backgroundColor: '#D9D9D9', // Color gris 
     borderRadius: 30, 
-    flexDirection: 'row',       // Alinea texto y número en horizontal
+    flexDirection: 'row',       
     paddingVertical: 25, 
     paddingHorizontal: 30,
     alignItems: 'center', 
-    justifyContent: 'space-between', // Separa el texto a la izquierda y el número a la derecha
+    justifyContent: 'space-between',
     marginVertical: 20,
     width: '100%',
-    elevation: 4,               // Sombra en Android
-    shadowColor: '#000',        // Sombra en iOS
+    elevation: 4,             
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
   },
@@ -178,16 +177,16 @@ totalCard: {
     fontSize: 22, 
     fontWeight: '500', 
     color: '#333', 
-    lineHeight: 28,             // Para que el salto de línea {"\n"} se vea espaciado
+    lineHeight: 28,         
   },
 
   // El círculo/óvalo que contiene el número (Verde oliva)
   numberBadge: { 
-    backgroundColor: '#9BB1A4', // Color verde del prototipo
-    borderRadius: 50,           // Hace que sea circular/redondeado
+    backgroundColor: '#9BB1A4', // Color verde 
+    borderRadius: 50,          
     paddingHorizontal: 25, 
     paddingVertical: 15,
-    minWidth: 100,              // Asegura que no se deforme con pocos números
+    minWidth: 100,            
     alignItems: 'center',
     justifyContent: 'center',
   },

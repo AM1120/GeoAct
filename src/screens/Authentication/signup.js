@@ -9,6 +9,12 @@ import { stylesauth } from '../../styles/stylesauth';
 import { db, auth } from '../../firebaseConfig';
 import {doc, setDoc} from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { NavigationContainer } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
+import Login from './login';
+
+import { sendEmailVerification } from 'firebase/auth';
+
 
 export default function Signup({ navigation }) {
   const [nombre, setNombre] = useState ('');
@@ -28,6 +34,10 @@ export default function Signup({ navigation }) {
       return;
     }
 
+    if (password.length < 6) {
+      Alert.alert("Error", "La contraseña debe tener al menos 6 caracteres.");
+      return;
+    }
 
     createUserWithEmailAndPassword(auth, email, password)
   

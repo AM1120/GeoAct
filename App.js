@@ -6,9 +6,9 @@ import { auth } from './src/firebaseConfig';
 import { View, ActivityIndicator } from 'react-native';
 
 // Importa tus pantallas
-import login from './src/screens/Authentication/login'; 
-import signup from './src/screens/Authentication/signup'
-import MyTab from './src/navigation/MainTab'; // Mueve tus tabs a otro archivo para limpiar
+import Login from './src/screens/Authentication/login'; 
+import Signup from './src/screens/Authentication/signup'
+import MyTab from './src/navigation/MainTab'; 
 
 const Stack = createStackNavigator();
 const AuthStack = createStackNavigator();
@@ -16,14 +16,14 @@ const AuthStack = createStackNavigator();
 function AuthNavigator (){
   return(
     <AuthStack.Navigator screenOptions={{headerShown:false}}>
-      <AuthStack.Screen name="login" component={login}/>
-      <AuthStack.Screen name="signup" component={signup}/>
+      <AuthStack.Screen name="login" component={Login}/>
+      <AuthStack.Screen name="signup" component={Signup}/>
     </AuthStack.Navigator>
   );
 }
 
 export default function App() {
-  // 1. Creamos un estado para saber si el usuario entró
+
   const [user, setUser] = useState(null);
   const [initializing, setInitializing] = useState(true);
 useEffect(() => {
@@ -33,10 +33,9 @@ useEffect(() => {
       if (initializing) setInitializing(false);
     });
 
-    return unsubscribe; // Limpia el listener
+    return unsubscribe;
   }, []);
 
-  // MIENTRAS VERIFICA LA SESIÓN, MUESTRA UN CARGANDO
   if (initializing) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#C2D5E8' }}>

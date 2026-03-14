@@ -1,16 +1,34 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image} from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image, Alert} from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword} from 'firebase/auth'
-import { NavigationContainer } from '@react-navigation/native';
+import {createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword} from 'firebase/auth'
+import { auth } from '../../firebaseConfig';
 import { db } from '../../firebaseConfig';
 
 export default function Login({ navigation, onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSignIn = () => {
-    signInWithEmailAndPassword(auth, email, password)
+  const cleanEmail = email.trim().toLowerCase();
+  const [loading, setLoading] = useState(false);
+
+
+
+  const handleSignIn = async() => {
+
+    if (email === '' || password === '') {
+      Alert.alert("Error", "Por favor completa todos los campos.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Tu correo electrónico es inválido.");
+      return;
+    }
+
+    signInWithEmailAndPassword(auth, cleanEmail, password)
     .then((userCredential) =>{
         console.log('Sesión iniciada correctamente:', userCredential.user.email)
     })
@@ -18,7 +36,46 @@ export default function Login({ navigation, onLogin }) {
         console.log("Error al iniciar sesión",error.message);
         alert("credenciales incorrectas");
     });
+
+    try {
+      console.log('Sesión iniciada correctamente:', userCredential.user.email);
+      onLogin(userCredential.user); // Llama a la función de callback para actualizar el estado en App.js
+    } catch (error) {
+      switch (error.code) {
+      case "auth/user-not-found":
+        Alert.alert("Error", "Usuario no registrado.");
+        break;
+
+      case "auth/wrong-password":
+        Alert.alert("Error", "Contraseña incorrecta.");
+        break;
+
+      case "auth/invalid-email":
+        Alert.alert("Error", "Correo inválido.");
+        break;
+    } 
+    }
   };
+
+  const handlePasswordReset = async () => {
+        if (!email) {
+          Alert.alert("Error", "Ingresa tu correo para recuperar la contraseña.");
+          return;
+        }
+
+        try {
+
+          await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+
+          Alert.alert("Correo enviado", "Revisa tu bandeja de entrada.");
+
+        } catch (error) {
+
+          Alert.alert("Error", "No se pudo enviar el correo.");
+
+        }
+
+      };
 
   return (
     <SafeAreaView style={stylesauth.container}>
@@ -26,10 +83,10 @@ export default function Login({ navigation, onLogin }) {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={stylesauth.container}
       >
-        {/* Círculo superior para el Logo de GeoAct */}
+        {/*Logo de GeoAct */}
         <View style={stylesauth.logoContainer}>
-          <View style={stylesauth.logoCircle}>
-            <Text style={{fontSize: 40}}></Text> 
+          <View>
+            <Image source={(require('../../../assets/geoacta.png'))}  style={stylesauth.logoCircle} />
           </View>
         </View>
 
@@ -60,7 +117,7 @@ export default function Login({ navigation, onLogin }) {
             />
           </View>
 
-          <TouchableOpacity style={stylesauth.forgotButton}>
+          <TouchableOpacity style={stylesauth.forgotButton} onPress={handlePasswordReset}>
             <Text style={stylesauth.forgotText}>¿Olvidaste tu Contraseña?</Text>
           </TouchableOpacity>
 

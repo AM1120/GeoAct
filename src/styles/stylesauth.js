@@ -17,7 +17,6 @@ export const stylesauth = StyleSheet.create ({
     width: 130,
     height: 130,
     borderRadius: 65,
-    backgroundColor: '#FFF',
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 5,
