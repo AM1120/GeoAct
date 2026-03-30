@@ -1,70 +1,169 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, TextInput, ScrollView } from "react-native";
-import { styleshome } from "../../src/styles/styleshome";
-import { PieChart } from "react-native-chart-kit";
-import { Dimensions } from "react-native";
+import { View, Text, ScrollView, Dimensions } from "react-native";
+import { BarChart } from "react-native-chart-kit";
 
-// Importaciones de Firebase
-import { db } from "../../src/firebaseConfig"; 
-import { auth } from "../../src/firebaseConfig";
-import { collection, query, getDocs, orderBy, addDoc, onSnapshot, doc, getDoc, where, serverTimestamp } from "firebase/firestore";
+import { db } from "../../src/firebaseConfig";
+import { collection, query, getDocs, where } from "firebase/firestore";
 
-const screenWidth =Dimensions.get("window").width
+const screenWidth = Dimensions.get("window").width;
+
+export default function Stadistics() {
+
+const [dataSemanal, setDataSemanal] = useState(null);
+const [dataMensual, setDataMensual] = useState(null);
+
+useEffect(() => {
+
+const cargarDatos = async () => {
+
+try {
+
+const fechaActual = new Date();
+const mesActual = fechaActual.getMonth() + 1;
+const anioActual = fechaActual.getFullYear();
+
+//sección de las semanas
+
+const qSemanas = query(
+collection(db, "registro_actas"),
+where("mes", "==", mesActual),
+where("anio", "==", anioActual)
+);
+
+const snapshotSemanas = await getDocs(qSemanas);
+
+const semanas = {
+  1:0,
+  2:0,
+  3:0,
+  4:0,
+  5:0};
+
+snapshotSemanas.forEach((doc) => {
+
+const data = doc.data();
+
+if(data.semana){
+semanas[data.semana]++;
+}
+
+});
+
+setDataSemanal({
+labels:["Semana 1","Semana 2","Semana 3","Semana 4","Semana 5"],
+datasets:[{
+data:[
+semanas[1],
+semanas[2],
+semanas[3],
+semanas[4],
+semanas[5]
+]
+}]
+});
 
 
-export default function Statistics() {
-  //Estados para la gráfica
-  const [datosGraficaTrimestre, setDatosGraficaTrimestre] =useState([]);
-  const [actasPOA, setActasPOA] = useState([]);
+//Sección de los meses
 
-    useEffect(() => {
-      const q = query(collection(db, "registro_actas"), orderBy("time", "desc"));
-      const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const docs = [];
-        querySnapshot.forEach((doc) => {
-          docs.push({ id: doc.id, ...doc.data() });
-        });
-        setActas(docs);
-      });
-      return () => unsubscribe();
-    }, []);
+const qMeses = query(
+collection(db, "registro_actas"),
+where("anio","==",anioActual)
+);
 
-const calcularDatosTrimestres = (actasCargadas) => {
-  let conteoTrimestres = { 'T1': 0, 'T2': 0, 'T3': 0, 'T4': 0 };
+const snapshotMeses = await getDocs(qMeses);
 
-  actasPOA.forEach(acta => {
-    if (acta.trimestre) { // Usamos el campo 'trimestre' que ya guardamos
-      conteoTrimestres[acta.trimestre]++;
-    }
-  });
-
-  // Formateamos los datos para la gráfica de Pie
-  // Los colores pueden ser los de tu marca GeoAct
-  return [
-    { name: "T1", population: conteoTrimestres['T1'], color: "#9BB1A4", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "T2", population: conteoTrimestres['T2'], color: "#C2D5E8", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "T3", population: conteoTrimestres['T3'], color: "#A2CCB6", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "T4", population: conteoTrimestres['T4'], color: "#E4D9B6", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-  ];
+const meses={
+1:0,
+2:0,
+3:0,
+4:0,
+5:0,
+6:0,
+7:0,
+8:0,
+9:0,
+10:0,
+11:0,
+12:0
 };
 
-  return (
-<View style={{ alignItems: 'center', marginTop: 20 }}>
-  <Text style={styleshome.cardLabel}>Estadísticas Trimestral (POA)</Text>
-  
-  <PieChart
-    data={calcularDatosTrimestres()}
-    width={screenWidth - 40}
-    height={200}
-    chartConfig={{
-      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    }}
-    accessor={"population"}
-    backgroundColor={"transparent"}
-    paddingLeft={"15"}
-    center={[10, 0]}
-    absolute // Esto hace que muestre el número real y no el porcentaje
-  />
-</View>
-  );
+snapshotMeses.forEach((doc)=>{
+
+const data = doc.data();
+
+if(data.mes){
+meses[data.mes]++;
+}
+
+});
+
+setDataMensual({
+labels:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+datasets:[{
+data:Object.values(meses)
+}]
+});
+
+}catch(error){
+
+console.log("Error cargando estadísticas:",error);
+
+}
+
+};
+
+cargarDatos();
+
+},[]);
+
+const chartConfig = {
+backgroundGradientFrom:"#fff",
+backgroundGradientTo:"#fff",
+decimalPlaces:0,
+color:(opacity=1)=>`rgba(0,0,0,${opacity})`,
+labelColor:(opacity=1)=>`rgba(0,0,0,${opacity})`
+};
+
+return(
+
+<ScrollView>
+
+<Text style={{fontSize:18,fontWeight:"bold",textAlign:"center",marginVertical:20}}>
+Estadísticas de Actas
+</Text>
+
+{dataSemanal && (
+<>
+<Text style={{textAlign:"center",marginBottom:10}}>
+Registro semanal
+</Text>
+
+<BarChart
+data={dataSemanal}
+width={screenWidth-20}
+height={220}
+chartConfig={chartConfig}
+/>
+</>
+)}
+
+{dataMensual && (
+<>
+<Text style={{textAlign:"center",marginVertical:20}}>
+Registro mensual
+</Text>
+
+<BarChart
+data={dataMensual}
+width={screenWidth-20}
+height={220}
+chartConfig={chartConfig}
+/>
+</>
+)}
+
+</ScrollView>
+
+);
+
 }

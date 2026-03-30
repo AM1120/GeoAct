@@ -108,7 +108,7 @@ export const styleshome = StyleSheet.create({
         marginBottom: 5,
     },
     inputField: {
-        backgroundColor: '#D6DBD2', // El verde/gris suave de tus inputs
+        backgroundColor: '#D6DBD2', // El verde/gris 
         borderWidth: 1,
         borderColor: '#444',
         borderRadius: 10,
@@ -127,7 +127,7 @@ export const styleshome = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     buttonGuardar: {
-        backgroundColor: '#000', // Botón negro según prototipo
+        backgroundColor: '#000', // Botón negro 
         borderRadius: 8,
         padding: 15,
         marginTop: 30,
@@ -140,7 +140,7 @@ export const styleshome = StyleSheet.create({
     },
     dropdownContainer: {
         position: 'absolute',
-        top: 55, // Esto lo coloca justo debajo del botón
+        top: 55, 
         left: 0,
         right: 0,
         backgroundColor: '#ffffff',
@@ -148,8 +148,8 @@ export const styleshome = StyleSheet.create({
         borderColor: '#444',
         borderRadius: 10,
         maxHeight: 150,
-        zIndex: 5000, // Un número muy alto para que nada lo tape
-        elevation: 5, // Importante para que en Android flote sobre los inputs
+        zIndex: 5000, 
+        elevation: 5, 
         overflow: 'hidden',
     },
     dropdownItem: {

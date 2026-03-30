@@ -21,6 +21,7 @@ export default function Home() {
   const [mostrarListado, setMostrarListado] = useState(false);
 
   const fechaActual = new Date();
+  const semanaActual = Math.ceil((fechaActual.getDate() + 6 - fechaActual.getDay()) / 7);
   const mesActual = fechaActual.getMonth() + 1;
   const trimestreActual = Math.floor(mesActual -1)/3 + 1; // Calcula el trimestre actual (1-4)
 
@@ -58,7 +59,7 @@ useEffect(() => {
     if (!user) return;
 
     try {
-      const userRef = doc(db, "users", user.uid, "profile", "info");
+      const userRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
@@ -98,10 +99,11 @@ useEffect(() => {
         await updateDoc(docRef, { ...formData, updatedAt: new Date() });
         alert("Acta actualizada correctamente.");
       } else {
-        // MODO CREACIÓN (lógica de duplicados actual...)
+        // lógica par los duplicados
         await addDoc(collection(db, "registro_actas"), {
         ...formData,
         createdAt: serverTimestamp(),
+        semana: semanaActual,
         mes: mesActual,
         trimestre: trimestreActual,
         anio: fechaActual.getFullYear()
@@ -118,9 +120,6 @@ useEffect(() => {
         const qActas = query(collection(db, "tipo_actas"), orderBy("nombre", "asc"));
         const SnapshotActas = await getDocs(qActas);
         setOpciones(SnapshotActas.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-
-        const qRegistradores = query(collection(db, "users"), orderBy("nombre", "asc"));
-        const SnapshotRegistrador = await getDocs(qRegistradores);
       } catch (error) {
         console.error("Error al obtener datos: ", error);
       }
@@ -188,7 +187,7 @@ useEffect(() => {
         >
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                 
-                {/* --- SECCIÓN TIPO DE ACTA --- */}
+                {/* sección del acta*/}
                 <View style={{ zIndex: 2000 }}> 
                     <Text style={styleshome.label}>Tipo de Acta</Text>
                     <TouchableOpacity 

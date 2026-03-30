@@ -1,11 +1,34 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, Switch } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, Switch, ScrollView } from "react-native";
 import { styleshome } from "../../src/styles/styleshome";
 import { auth, db } from "../firebaseConfig";
+import { signOut } from "firebase/auth";
+import { collection, addDoc } from "firebase/firestore";
+
+import CustomModal from "./components/Modal";
+import { stylesmodal } from "../styles/stylesmodal";
 
 export default function Ajustes() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(false);
+
+  const [mo, setMo] = useState(false);
+
+
+  const handleLogout = async () => {
+  try {
+
+    await signOut(auth);
+
+    setMo(false);
+
+  } catch (error) {
+
+    console.log("Error al cerrar sesión:", error);
+
+  }
+};
+
 
   return (
     <View style={styleshome.body}>        
@@ -53,10 +76,25 @@ export default function Ajustes() {
             <Text style={{ fontSize: 24, color: '#333' }}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => auth.signOut()}>
+          <TouchableOpacity onPress={() => setMo(true)}>
             <Text style={styleshome.logoutText}>Cerrar Sesión</Text>
           </TouchableOpacity>
           
+
+          <CustomModal visible={mo} onClose={() => setMo(false)}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>          
+                {/* sección del modal*/}
+                <View style={{ zIndex: 2000 }}> 
+                    <Text style={styleshome.title}>Está seguro de cerrar sesión</Text>
+                    <TouchableOpacity 
+                      style={styleshome.buttonGuardar} 
+                      onPress={handleLogout}
+                    >
+                      <Text style={styleshome.logoutText}>Cerrar Sesión</Text>
+                    </TouchableOpacity>
+                </View>
+                </ScrollView>
+            </CustomModal>
         </View>
       </View>
     </View>

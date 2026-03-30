@@ -45,8 +45,8 @@ export default function Signup({ navigation }) {
     
       const user = userCredential.user;
     // GUARDAR PERFIL AUTOMÁTICAMENTE
-    await setDoc(doc(db, "users", user.uid, "profile", "info"), {
-      nombre: nombre, // Este estado debes agregarlo al formulario
+    await setDoc(doc(db, "users", user.uid), {
+      nombre: nombre, 
       email: email,
       rol: "Doctor/Registrador",
       createdAt: new Date()

@@ -36,12 +36,15 @@ export default function Search() {
   });
 
   useEffect(() => {
-    const q = query(collection(db, "registro_actas"), orderBy("time", "desc"));
+    const q = query(collection(db, "registro_actas"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs = [];
       querySnapshot.forEach((doc) => {
         docs.push({ id: doc.id, ...doc.data() });
       });
+
+      console.log("Actas cargadas: ", docs.length);
+
       setActas(docs);
     });
     return () => unsubscribe();
@@ -199,6 +202,9 @@ export default function Search() {
         </ScrollView>
       </CustomModal>
     </ScrollView>
+      {SearchFil.length === 0 &&(
+            <Text style={{textAlign:'center', marginTop:20, color:'#555'}}>No se encontraron resultados</Text>
+          )}
       </View>
     </View>
   );
