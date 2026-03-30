@@ -1,13 +1,11 @@
 import { StyleSheet } from "react-native";
 
 export const stylesauth = StyleSheet.create ({
-
-    container: {
-    flex: 1,
-    backgroundColor: '#C2D5E8', // Azul claro de fondo
+  ScrollContainer: {
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
+    paddingVertical: 20,
   },
   logoContainer: {
     marginBottom: 20,
@@ -34,6 +32,7 @@ export const stylesauth = StyleSheet.create ({
     borderRadius: 20,
     padding: 25,
     alignItems: 'center',
+    alignSelf: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 10,

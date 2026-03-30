@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Text, View, TextInput, TouchableOpacity, 
-  SafeAreaView, KeyboardAvoidingView, Platform, Image, Alert 
+  SafeAreaView, KeyboardAvoidingView, Platform, Image, Alert, ScrollView
 } from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
 
@@ -62,11 +62,15 @@ export default function Signup({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={stylesauth.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#C2D5E8' }}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={stylesauth.container}
+        style={{ flex: 1 }}
       >
+      <ScrollView
+          contentContainerStyle={stylesauth.ScrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
         <Text style={stylesauth.welcomeText}>Registro</Text>
 
         <View style={stylesauth.card}>
@@ -126,6 +130,7 @@ export default function Signup({ navigation }) {
             <Text style={stylesauth.forgotText}>¿Ya tienes cuenta? Volver</Text>
           </TouchableOpacity>
         </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

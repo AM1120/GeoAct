@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image, Alert} from 'react-native';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image, Alert, ScrollView} from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
 import {createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword} from 'firebase/auth'
 import { auth } from '../../firebaseConfig';
@@ -78,11 +78,15 @@ export default function Login({ navigation, onLogin }) {
       };
 
   return (
-    <SafeAreaView style={stylesauth.container}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#C2D5E8' }}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={stylesauth.container}
+        style={{flex:1}}
       >
+        <ScrollView
+          contentContainerStyle={stylesauth.ScrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
         {/*Logo de GeoAct */}
         <View style={stylesauth.logoContainer}>
           <View>
@@ -131,6 +135,7 @@ export default function Login({ navigation, onLogin }) {
           </TouchableOpacity>
 
         </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

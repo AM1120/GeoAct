@@ -17,7 +17,7 @@ export default function Home() {
   const [mo, setMo] = useState(false);
   const [opciones, setOpciones] = useState([]);
   const [selectedOption, setSelectedOption] = useState("Seleccionar...");
-  const [selectedRegistrador, setSelectedRegistrador] = useState("Seleccionar...");
+  const [selectedRegistrador, setSelectedRegistrador] = useState([]);
   const [mostrarListado, setMostrarListado] = useState(false);
 
   const fechaActual = new Date();
