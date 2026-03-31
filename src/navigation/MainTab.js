@@ -18,6 +18,7 @@ import MetaPOA from '../screens/MetaPOA';
       name="Statistics" 
       component={Statistics} 
       options={{
+        headerShown: false,
         tabBarIcon: ({color, size})=>(
           <Image source={require('../../assets/Icongrafic.png')} style={{tintColor: color, width: size, height: size}} />
         )}} />
@@ -26,14 +27,17 @@ import MetaPOA from '../screens/MetaPOA';
       name="MetaPOA" 
       component={MetaPOA}
       options={{
+        headerShown: false,
         tabBarIcon: ({color, size})=>(
           <Image source={require('../../assets/IconPOA.png')} style={{tintColor: color, width: size, height: size}} />
-        )}} /> 
+        )}} 
+        /> 
 
       <Tab.Screen 
       name="Home" 
       component={Home}
       options={{
+        headerShown: false,
         tabBarIcon: ({color, size})=>(
           <Image source={require('../../assets/IconHouse.png')} style={{tintColor: color, width: size, height: size}} />
         )}} />
@@ -42,6 +46,7 @@ import MetaPOA from '../screens/MetaPOA';
       name="Search" 
       component={Search}
       options={{
+        headerShown: false,
         tabBarIcon: ({color, size})=>(
           <Image source={require('../../assets/IconLupa.png')} style={{tintColor: color, width: size, height: size}} />
         )}} />
@@ -50,6 +55,7 @@ import MetaPOA from '../screens/MetaPOA';
       name="Settings" 
       component={Settings}
       options={{
+        headerShown: false,
         tabBarIcon: ({color, size})=>(
           <Image source={require('../../assets/IconAjuste.png')} style={{tintColor: color, width: size, height: size}} />
         )}} /> 

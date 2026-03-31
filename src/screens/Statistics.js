@@ -22,6 +22,8 @@ const fechaActual = new Date();
 const mesActual = fechaActual.getMonth() + 1;
 const anioActual = fechaActual.getFullYear();
 
+const [filtro, setFiltro] = useState("mes");
+
 //sección de las semanas
 
 const qSemanas = query(
@@ -29,6 +31,31 @@ collection(db, "registro_actas"),
 where("mes", "==", mesActual),
 where("anio", "==", anioActual)
 );
+
+useEffect(() => {
+  const ahora = new Date();
+  const anioActual = ahora.getFullYear();
+  
+  // Determinamos qué valor buscar según el filtro seleccionado
+  let valorActual;
+  if (filtro === 'semana') valorActual = getWeekNumber(ahora);
+  else if (filtro === 'mes') valorActual = ahora.getMonth() + 1;
+  else valorActual = Math.floor(ahora.getMonth() / 3) + 1;
+
+  // ESTA ES LA QUERY CLAVE
+  const q = query(
+    collection(db, "registro_actas"),
+    where("anio", "==", anioActual),
+    where(filtro, "==", valorActual) // Busca dinámicamente en el campo 'semana', 'mes' o 'trimestre'
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const datosFiltrados = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    setActasFiltradas(datosFiltrados); // Estado local de esta pantalla
+  });
+
+  return () => unsubscribe();
+}, [filtro]); // <-- IMPORTANTE: Se reinicia cada vez que cambias el filtro
 
 const snapshotSemanas = await getDocs(qSemanas);
 
@@ -117,53 +144,51 @@ cargarDatos();
 },[]);
 
 const chartConfig = {
-backgroundGradientFrom:"#fff",
-backgroundGradientTo:"#fff",
-decimalPlaces:0,
-color:(opacity=1)=>`rgba(0,0,0,${opacity})`,
-labelColor:(opacity=1)=>`rgba(0,0,0,${opacity})`
+    backgroundGradientFrom:"#fff",
+    backgroundGradientTo:"#fff",
+    decimalPlaces:0,
+    color:(opacity=1)=>`rgba(0,0,0,${opacity})`,
+    labelColor:(opacity=1)=>`rgba(0,0,0,${opacity})`
 };
 
 return(
+    <ScrollView>
+      <Text style={{fontSize:18,fontWeight:"bold",textAlign:"center",marginVertical:20}}>
+      Estadísticas de Actas
+      </Text>
 
-<ScrollView>
+    {dataSemanal && (
+    <>
+    <Text style={{textAlign:"center",marginBottom:10}}>
+    Registro semanal
+    </Text>
 
-<Text style={{fontSize:18,fontWeight:"bold",textAlign:"center",marginVertical:20}}>
-Estadísticas de Actas
-</Text>
+    <BarChart
+        data={dataSemanal}
+        width={screenWidth-20}
+        height={220}
+        chartConfig={chartConfig}
+        />
+        </>
+    )}
 
-{dataSemanal && (
-<>
-<Text style={{textAlign:"center",marginBottom:10}}>
-Registro semanal
-</Text>
+        {dataMensual && (
+        <>
+        <Text style={{textAlign:"center",marginVertical:20}}>
+        Registro mensual
+        </Text>
 
-<BarChart
-data={dataSemanal}
-width={screenWidth-20}
-height={220}
-chartConfig={chartConfig}
-/>
-</>
-)}
+    <BarChart
+        data={dataMensual}
+        width={screenWidth-20}
+        height={220}
+        chartConfig={chartConfig}
+        />
+        </>
+    )}
 
-{dataMensual && (
-<>
-<Text style={{textAlign:"center",marginVertical:20}}>
-Registro mensual
-</Text>
+    </ScrollView>
 
-<BarChart
-data={dataMensual}
-width={screenWidth-20}
-height={220}
-chartConfig={chartConfig}
-/>
-</>
-)}
-
-</ScrollView>
-
-);
+    );
 
 }

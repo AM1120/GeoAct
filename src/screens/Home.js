@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Image, TextInput, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Image, TextInput, ScrollView, ActivityIndicator } from "react-native";
 import { styleshome } from "../../src/styles/styleshome";
 import CustomModal from "./components/Modal"; 
 import { PieChart } from "react-native-chart-kit";
@@ -20,10 +20,7 @@ export default function Home() {
   const [selectedRegistrador, setSelectedRegistrador] = useState([]);
   const [mostrarListado, setMostrarListado] = useState(false);
 
-  const fechaActual = new Date();
-  const semanaActual = Math.ceil((fechaActual.getDate() + 6 - fechaActual.getDay()) / 7);
-  const mesActual = fechaActual.getMonth() + 1;
-  const trimestreActual = Math.floor(mesActual -1)/3 + 1; // Calcula el trimestre actual (1-4)
+  const [loading, setLoading] = useState(false);
 
   const [actasPOA, setActasPOA] = useState([]);
   const [datosGraficaTrimestre, setDatosGraficaTrimestre] = useState([]);
@@ -93,23 +90,38 @@ useEffect(() => {
         return;
       }
 
+      const ahora = new Date();
+
+      const MesNumero = (d) => {
+        d= new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+        var IncioAnio= new Date(Date.UTC(d.getUTCFullYear(),0,1));
+        return Math.ceil((((d-IncioAnio)/86400000)+1)/7);
+      };
+
+      const dataSave = {
+        ...formData,
+        createdAt: serverTimestamp(),
+
+        stats: {
+          semana: MesNumero(ahora),
+          mes: ahora.getMonth() + 1,
+          trimestre: Math.floor((ahora.getMonth()) / 3) + 1,
+          anio: ahora.getFullYear(),
+          diaDelMes: ahora.getDate(),
+          diaDeLaSemana: ahora.getDay() + 1,
+        }
+      };
+
       if (editId) {
         // MODO EDICIÓN
         const docRef = doc(db, "registro_actas", editId);
-        await updateDoc(docRef, { ...formData, updatedAt: new Date() });
+        await updateDoc(docRef, { ...dataSave, updatedAt: serverTimestamp() });
         alert("Acta actualizada correctamente.");
       } else {
-        // lógica par los duplicados
-        await addDoc(collection(db, "registro_actas"), {
-        ...formData,
-        createdAt: serverTimestamp(),
-        semana: semanaActual,
-        mes: mesActual,
-        trimestre: trimestreActual,
-        anio: fechaActual.getFullYear()
-      });
-        alert("Acta guardada.");
+        await addDoc(collection(db, "registro_actas"), dataSave);
       }
+      alert("Acta registrada correctamente.");
       cerrarModal();
     } catch (error) { console.error(error); }
   }
@@ -131,34 +143,45 @@ useEffect(() => {
 
     const conteo ={};
     actas.forEach((acta) => {
-      if (!conteo[acta.tipoActa]) {
-        conteo[acta.tipoActa] = 0;
-      }
-      conteo [acta.tipoActa]++;
-    });
+        conteo[acta.tipoActa] = (conteo[acta.tipoActa] || 0) + 1;
+      });
+      
+      return Object.keys(conteo).map((tipo, index) => {
+        let nombreCortoActa = tipo.replace("Acta de ", "");
+      
 
-    return Object.keys(conteo).map((tipo, index) => ({
-    name: tipo,
-    population: conteo[tipo],
-    color: ["#4F81BD","#C0504D","#9BBB59","#8064A2"][index % 4],
-    legendFontColor: "#333",
-    legendFontSize: 12
-  }));
-
-};
+    return {
+      name: `${nombreCortoActa}`,
+      population: conteo[tipo],
+      color: ["#93B1A5","#62766E","#284265","#C3D1C2"][index % 4],
+      legendFontColor: "#555",
+      legendFontSize: 13
+    };
+  });
+}
 
 useEffect(() => {
-  const mesActual = new Date(). getMonth() + 1;
-  const trimestreActual = Math.floor(mesActual -1)/3 + 1;
+  const anioActual = new Date().getFullYear();
 
-  const q = query(collection(db, "registro_actas"), where("trimestre", "==", trimestreActual));
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    const actasCargadas = [];
-    snapshot.forEach((doc) => {
-      actasCargadas.push({ id: doc.id, ...doc.data() });
-    });
+  const q = query(collection(db, "registro_actas"), where("stats.anio", "==", anioActual));
+const unsubscribe = onSnapshot(q, (snapshot) => {
+    //Aquí se extraen los datos
+    const actasCargadas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    //Se actualiza 
     setActasPOA(actasCargadas);
-    setDatosGraficaTrimestre(CalcularDatosTrimestre(actasCargadas));
+    setTotalActas(actasCargadas.length);
+    setLoading(false);
+    
+    
+    //solo se ve la gráfica cuando tenga datos
+    if (actasCargadas.length > 0) {
+      setDatosGraficaTrimestre(CalcularDatosTrimestre(actasCargadas));
+    } else {
+      setDatosGraficaTrimestre([]);
+    }
+  }, (error) => {
+    console.error("Error en el listener:", error);
   });
 
   return () => unsubscribe();
@@ -176,7 +199,7 @@ useEffect(() => {
         <View style={styleshome.totalCard}>
         <Text style={styleshome.cardLabel}>Actas{"\n"}Totales</Text>
         <View style={styleshome.numberBadge}>
-          <Text style={styleshome.totalNumber}>{totalActas}</Text>
+         {loading ? <ActivityIndicator /> : <Text style={styleshome.totalNumber}>{totalActas}</Text>}
         </View>
       </View>
 
@@ -280,20 +303,34 @@ useEffect(() => {
 
             </ScrollView>
         </CustomModal>
-        <View style={styleshome.containerBlue}>
-        <Text>Gráfica</Text>
+        <View style={[styleshome.containerBlue, {alignItems: 'center', justifyContent: 'center', width: '100%'}]}>
+        <Text style={styleshome.title}>Gráfica</Text>
           <PieChart
             data={datosGraficaTrimestre}
-            width={screenWidth - 40}
-            height={220}
+            width={screenWidth * 0.8}
+            height={210}
             chartConfig={{
-              color: () => `#000`
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
             }}
             accessor="population"
             backgroundColor="transparent"
-            paddingLeft="5"
+            paddingLeft="20"
+            center={[10,0]}
+            absolute
+            hasLegend={true}
+            avoidFalseZero={true}
           />
-          </View>
+          <View style={{
+            position: 'absolute',
+            left: '29%',
+            top: '62%',
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            backgroundColor: '#4A90E2',
+          }}/>
+
+        </View>
       </View>
     </View>
   );
