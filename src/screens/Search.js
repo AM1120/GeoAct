@@ -43,7 +43,7 @@ export default function Search() {
         docs.push({ id: doc.id, ...doc.data() });
       });
 
-      console.log("Actas cargadas: ", docs.length);
+      // console.log("Actas cargadas: ", docs.length);
 
       setActas(docs);
     });

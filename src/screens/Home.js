@@ -167,7 +167,7 @@ useEffect(() => {
 const unsubscribe = onSnapshot(q, (snapshot) => {
     //Aquí se extraen los datos
     const actasCargadas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
+
     //Se actualiza 
     setActasPOA(actasCargadas);
     setTotalActas(actasCargadas.length);
