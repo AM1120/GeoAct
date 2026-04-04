@@ -17,11 +17,12 @@ export const styleshome = StyleSheet.create({
         flex: 1,
         backgroundColor: '#ffffff',
         padding: 20,
-        margin: 30,
+        margin: 20,
+        marginTop:50,
         borderRadius: 10,
     },
     containerBlue: {
-        backgroundColor: '#4A90E2', // Azul muy clarito
+        backgroundColor: '#4A90E2',
         borderRadius: 35,
         padding: 25,
         alignItems: 'center',

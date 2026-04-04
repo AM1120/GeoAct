@@ -84,6 +84,9 @@ useEffect(() => {
 
 
   const guardarDatos = async() => {
+    const fechaActual = new Date();
+    const diaDelMes = fechaActual.getDate();
+    const semanaDelMes = Math.ceil(fechaActual.getDate() / 7);
     try {
       if (!formData.tipoActa || !formData.ciudadano || !formData.nroActa) {
         alert("Completa los campos obligatorios.");
@@ -104,7 +107,7 @@ useEffect(() => {
         createdAt: serverTimestamp(),
 
         stats: {
-          semana: MesNumero(ahora),
+          semana: semanaDelMes,
           mes: ahora.getMonth() + 1,
           trimestre: Math.floor((ahora.getMonth()) / 3) + 1,
           anio: ahora.getFullYear(),

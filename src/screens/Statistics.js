@@ -3,7 +3,8 @@ import { View, Text, ScrollView, Dimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
 import { db } from "../../src/firebaseConfig";
-import { collection, query, getDocs, where } from "firebase/firestore";
+import { collection, query, getDocs, where, onSnapshot } from "firebase/firestore";
+import { styleshome } from "../styles/styleshome";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -11,26 +12,78 @@ export default function Stadistics() {
 
 const [dataSemanal, setDataSemanal] = useState(null);
 const [dataMensual, setDataMensual] = useState(null);
-
-useEffect(() => {
-
-const cargarDatos = async () => {
-
-try {
-
-const fechaActual = new Date();
-const mesActual = fechaActual.getMonth() + 1;
-const anioActual = fechaActual.getFullYear();
-
 const [filtro, setFiltro] = useState("mes");
 
-//sección de las semanas
+const [actasFiltradas, setActasFiltradas] = useState([]); // Estado local para actas filtradas
 
-const qSemanas = query(
-collection(db, "registro_actas"),
-where("mes", "==", mesActual),
-where("anio", "==", anioActual)
-);
+
+useEffect(() => {
+  const anioActual = new Date().getFullYear();
+  const mesActual = new Date().getMonth() + 1;
+
+  // CONSULTA EN TIEMPO REAL
+  const q = query(
+    collection(db, "registro_actas"),
+    where("stats.anio", "==", anioActual)
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+  const actas = snapshot.docs.map(doc => doc.data());
+  const mesActual = new Date().getMonth() + 1;
+
+  // 1. FILTRAR: Solo actas del mes actual
+  const actasDelMes = actas.filter(a => a.stats.mes === mesActual);
+
+  // 2. INICIALIZAR: Si no pones los ceros primero, el IF de abajo falla
+  const conteoSemanas = { "Sem 1": 0, "Sem 2": 0, "Sem 3": 0, "Sem 4": 0, "Sem 5": 0 };
+
+  // 3. CONTAR: Usamos un pequeño truco para convertir el 14 en semana del mes
+  // o simplemente leemos el campo si ya lo tienes como 1-5
+  actasDelMes.forEach(a => {
+    // Si tu 'stats.semana' es del año (ej. 14), hay que calcular su semana del mes.
+    // Si ya es del 1 al 5, solo haz: const numSemana = a.stats.semana;
+    const numSemana = a.stats.semana > 5 ? Math.ceil(a.stats.diaDelMes / 7) : a.stats.semana;
+    
+    const llave = `Sem ${numSemana}`;
+    if (conteoSemanas[llave] !== undefined) {
+      conteoSemanas[llave]++;
+    }
+  });
+
+  setDataSemanal({
+    labels: Object.keys(conteoSemanas),
+    datasets: [{ 
+      data: Object.values(conteoSemanas)
+    }]
+  });
+
+      // --- PROCESAR MENSUAL ---
+  const mesesArr = new Array(12).fill(0);
+    actas.forEach(a => {
+      if (a.stats.mes) mesesArr[a.stats.mes - 1]++;
+    });
+
+    setDataMensual({
+      labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+      datasets: [{ data: mesesArr }]
+    });
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
+// CONFIGURACIÓN VISUAL MEJORADA
+const chartConfig = {
+  backgroundColor: "#ffffff",
+  backgroundGradientFrom: "#ffffff",
+  backgroundGradientTo: "#ffffff",
+  decimalPlaces: 0, 
+  color: (opacity = 1) => `rgba(79, 129, 189, ${opacity})`, // Azul profesional
+  labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+  style: { borderRadius: 16 },
+  propsForDots: { r: "6", strokeWidth: "2", stroke: "#ffa726" }
+};
 
 useEffect(() => {
   const ahora = new Date();
@@ -45,8 +98,8 @@ useEffect(() => {
   // ESTA ES LA QUERY CLAVE
   const q = query(
     collection(db, "registro_actas"),
-    where("anio", "==", anioActual),
-    where(filtro, "==", valorActual) // Busca dinámicamente en el campo 'semana', 'mes' o 'trimestre'
+    where("stats.anio", "==", anioActual),
+    where(`stats.${filtro}`, "==", valorActual) // Busca dinámicamente en el campo 'semana', 'mes' o 'trimestre'
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -55,140 +108,73 @@ useEffect(() => {
   });
 
   return () => unsubscribe();
-}, [filtro]); // <-- IMPORTANTE: Se reinicia cada vez que cambias el filtro
-
-const snapshotSemanas = await getDocs(qSemanas);
-
-const semanas = {
-  1:0,
-  2:0,
-  3:0,
-  4:0,
-  5:0};
-
-snapshotSemanas.forEach((doc) => {
-
-const data = doc.data();
-
-if(data.semana){
-semanas[data.semana]++;
-}
-
-});
-
-setDataSemanal({
-labels:["Semana 1","Semana 2","Semana 3","Semana 4","Semana 5"],
-datasets:[{
-data:[
-semanas[1],
-semanas[2],
-semanas[3],
-semanas[4],
-semanas[5]
-]
-}]
-});
-
-
-//Sección de los meses
-
-const qMeses = query(
-collection(db, "registro_actas"),
-where("anio","==",anioActual)
-);
-
-const snapshotMeses = await getDocs(qMeses);
-
-const meses={
-1:0,
-2:0,
-3:0,
-4:0,
-5:0,
-6:0,
-7:0,
-8:0,
-9:0,
-10:0,
-11:0,
-12:0
-};
-
-snapshotMeses.forEach((doc)=>{
-
-const data = doc.data();
-
-if(data.mes){
-meses[data.mes]++;
-}
-
-});
-
-setDataMensual({
-labels:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
-datasets:[{
-data:Object.values(meses)
-}]
-});
-
-}catch(error){
-
-console.log("Error cargando estadísticas:",error);
-
-}
-
-};
-
-cargarDatos();
-
-},[]);
-
-const chartConfig = {
-    backgroundGradientFrom:"#fff",
-    backgroundGradientTo:"#fff",
-    decimalPlaces:0,
-    color:(opacity=1)=>`rgba(0,0,0,${opacity})`,
-    labelColor:(opacity=1)=>`rgba(0,0,0,${opacity})`
-};
+}, [filtro]); 
 
 return(
-    <ScrollView>
-      <Text style={{fontSize:18,fontWeight:"bold",textAlign:"center",marginVertical:20}}>
-      Estadísticas de Actas
-      </Text>
+      <View style={styleshome.body}>
+      <View style={styleshome.container}>
+      <Text style={styleshome.title}>Estadísticas de Actas</Text>
 
     {dataSemanal && (
     <>
-    <Text style={{textAlign:"center",marginBottom:10}}>
+    <Text style={styleshome.label}>
     Registro semanal
     </Text>
 
     <BarChart
         data={dataSemanal}
-        width={screenWidth-20}
+        width={screenWidth-60}
         height={220}
+        yAxisLabel=""
+        segments={3}
         chartConfig={chartConfig}
+        fromZero={true}
+        showValuesOnTopOfBars={true}
+        style={{
+          marginVertical:8,
+          borderRadius:16,
+          marginLeft: -20,
+        }}
         />
         </>
     )}
 
         {dataMensual && (
         <>
-        <Text style={{textAlign:"center",marginVertical:20}}>
+        <Text style={styleshome.label}>
         Registro mensual
         </Text>
 
     <BarChart
         data={dataMensual}
-        width={screenWidth-20}
-        height={220}
-        chartConfig={chartConfig}
+        width={screenWidth-80}
+        height={230}
+        yAxisLabel=""
+        yAxisSuffix=""
+        segments={3}
+        chartConfig={{
+    ...chartConfig,
+    // 3. ESTILO: Reduce un poco la fuente de las etiquetas X para que quepa "Dic"
+    propsForLabels: {
+      fontSize: 10,
+    },
+    decimalPlaces: 0,
+    barPercentage:0.5,
+  }}
+        verticalLabelRotation={90}
+        fromZero={true}
+        showValuesOnTopOfBars={true}
+        style={{
+          marginVertical:15,
+          borderRadius:16,
+          paddingRight: 0,
+          marginLeft: -10,
+          alignSelf: 'center', 
+        }}
         />
         </>
     )}
-
-    </ScrollView>
-
-    );
-
+    </View>
+    </View>
+);
 }
