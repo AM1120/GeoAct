@@ -42,7 +42,7 @@ export default function Home() {
   }
 
   useEffect(() =>{
-    const q=query(collection(db, "registro_actas"));
+    const q=query(collection(db, "registro_solicitud"));
     const unsubscribe =onSnapshot(q, (snapshot) => {
       setTotalActas(snapshot.size);
     });
@@ -88,10 +88,29 @@ useEffect(() => {
     const diaDelMes = fechaActual.getDate();
     const semanaDelMes = Math.ceil(fechaActual.getDate() / 7);
     try {
-      if (!formData.tipoActa || !formData.ciudadano || !formData.nroActa) {
+      if (!formData.tipoActa || !formData.ciudadano || !formData.nroActa || !formData.nroTomo) {
         alert("Completa los campos obligatorios.");
         return;
       }
+
+      // Verificar duplicados solo en modo creación
+      if (!editId) {
+      const qDuplicado = query(
+        collection(db, "registro_solicitud"),
+        where("tipoActa", "==", formData.tipoActa),
+        where("nroActa", "==", formData.nroActa),
+        where("nroTomo", "==", formData.nroTomo)
+      );
+
+      const querySnapshot = await getDocs(qDuplicado);
+
+      if (!querySnapshot.empty) {
+        alert(
+          `¡Error! Ya existe un registro de ${formData.tipoActa} con el Acta Nro. ${formData.nroActa} y Tomo ${formData.nroTomo}.`
+        );
+        return; // Detenemos la ejecución aquí
+      }
+    }
 
       const ahora = new Date();
 
@@ -104,6 +123,7 @@ useEffect(() => {
 
       const dataSave = {
         ...formData,
+        cantCopy: 0,
         createdAt: serverTimestamp(),
 
         stats: {
@@ -118,11 +138,11 @@ useEffect(() => {
 
       if (editId) {
         // MODO EDICIÓN
-        const docRef = doc(db, "registro_actas", editId);
+        const docRef = doc(db, "registro_solicitud", editId);
         await updateDoc(docRef, { ...dataSave, updatedAt: serverTimestamp() });
         alert("Acta actualizada correctamente.");
       } else {
-        await addDoc(collection(db, "registro_actas"), dataSave);
+        await addDoc(collection(db, "registro_solicitud"), dataSave);
       }
       alert("Acta registrada correctamente.");
       cerrarModal();
@@ -166,7 +186,7 @@ useEffect(() => {
 useEffect(() => {
   const anioActual = new Date().getFullYear();
 
-  const q = query(collection(db, "registro_actas"), where("stats.anio", "==", anioActual));
+  const q = query(collection(db, "registro_solicitud"), where("stats.anio", "==", anioActual));
 const unsubscribe = onSnapshot(q, (snapshot) => {
     //Aquí se extraen los datos
     const actasCargadas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -209,7 +229,7 @@ const unsubscribe = onSnapshot(q, (snapshot) => {
         <CustomModal 
             visible={mo} 
             onClose={() => setMo(false)} 
-            title="Registro de Nuevas Actas"
+            title="Registro de Solicitud"
         >
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                 

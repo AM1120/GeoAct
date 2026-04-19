@@ -21,7 +21,7 @@ export default function POA() {
 
     // Escuchamos los REGISTROS reales
     const qActas = query(
-      collection(db, "registro_actas"),
+      collection(db, "registro_solicitud"),
       where("trimestre", "==", trimestreActual),
       where("anio", "==", anioActual)
     );

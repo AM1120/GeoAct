@@ -23,7 +23,7 @@ useEffect(() => {
 
   // CONSULTA EN TIEMPO REAL
   const q = query(
-    collection(db, "registro_actas"),
+    collection(db, "registro_solicitud"),
     where("stats.anio", "==", anioActual)
   );
 
@@ -97,7 +97,7 @@ useEffect(() => {
 
   // ESTA ES LA QUERY CLAVE
   const q = query(
-    collection(db, "registro_actas"),
+    collection(db, "registro_solicitud"),
     where("stats.anio", "==", anioActual),
     where(`stats.${filtro}`, "==", valorActual) // Busca dinámicamente en el campo 'semana', 'mes' o 'trimestre'
   );

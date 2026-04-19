@@ -10,14 +10,16 @@ import {useNavigation} from "@react-navigation/native";
 
 export default function Search() {
   const [actas, setActas] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);// Estado del modal normal de edición
+  const [modalCopyVisible, setModalCopyVisible] = useState(false); //Estado el modal de Copias
   const [selectedId, setSelectedId] = useState(null); // Para saber qué acta editar/borrar
-  
+  const [copias, setCopias]= useState(null);
   //para la búsqueda
   const [searchText, setSearchText] = useState ("");
 
   // Estado unificado para el formulario de edición
   const [formData, setFormData] = useState({
+    actaId: '',
     tipoActa: '',
     ciudadano: '',
     nroActa: '',
@@ -36,7 +38,7 @@ export default function Search() {
   });
 
   useEffect(() => {
-    const q = query(collection(db, "registro_actas"));
+    const q = query(collection(db, "registro_solicitud"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs = [];
       querySnapshot.forEach((doc) => {
@@ -63,6 +65,12 @@ export default function Search() {
     setModalVisible(true);
   };
 
+  const handleOpenCopy = (acta) => {
+    setSelectedId(acta.id);
+    setCopias("");
+    setModalCopyVisible(true);
+  };
+
   const handleInputChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
   };
@@ -70,7 +78,7 @@ export default function Search() {
   // Función para Actualizar
   const handleUpdate = async () => {
     try {
-      const actaRef = doc(db, "registro_actas", selectedId);
+      const actaRef = doc(db, "registro_solicitud", selectedId);
       await updateDoc(actaRef, { 
         ...formData,
         updatedAt: new Date() 
@@ -81,7 +89,33 @@ export default function Search() {
       Alert.alert("Error", "No se pudo actualizar.");
     }
   };
+  
+const saveCopy = async () => {
+    // 1. Validación básica
+    if (!copias || isNaN(parseInt(copias))) {
+      Alert.alert("Error", "Por favor, ingresa un número válido de copias.");
+      return;
+    }
 
+    try {
+      // 2. Referencia al documento específico usando el ID seleccionado
+      const actaRef = doc(db, "registro_solicitud", selectedId);
+
+      // 3. Actualizamos solo el campo de copias
+      await updateDoc(actaRef, {
+        cantCopy: parseInt(copias),
+        updatedAt: new Date() // Opcional: para saber cuándo se actualizó
+      });
+
+      // 4. Limpieza y cierre
+      setModalCopyVisible(false);
+      setCopias(""); 
+      Alert.alert("Éxito", "Cantidad de copias actualizada.");
+    } catch (error) {
+      console.error("Error al actualizar:", error);
+      Alert.alert("Error", "No se pudo actualizar la cantidad de copias.");
+    }
+  };
   // Función para Eliminar
   const handleDelete = async () => {
     Alert.alert(
@@ -94,7 +128,7 @@ export default function Search() {
           style: "destructive",
           onPress: async () => {
             try {
-              await deleteDoc(doc(db, "registro_actas", selectedId));
+              await deleteDoc(doc(db, "registro_solicitud", selectedId));
               setModalVisible(false);
               Alert.alert("Eliminado", "El registro ha sido borrado.");
             } catch (error) {
@@ -138,6 +172,12 @@ export default function Search() {
             <TouchableOpacity onPress={() => handleOpenModal(item)}>
               {/* Usamos un icono de edición o configuración */}
               <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styleshome.actaActions}>
+            <TouchableOpacity onPress={() => handleOpenCopy(item)}>
+              <Image source={require('../../assets/IconCopy.png')} style={styleshome.actionIcon} />
             </TouchableOpacity>
           </View>
         </View>
@@ -200,6 +240,25 @@ export default function Search() {
           </TouchableOpacity>
         </View>
         </ScrollView>
+      </CustomModal>
+
+      <CustomModal
+        visible={modalCopyVisible}
+        onClose={() => setModalCopyVisible(false)}
+        title="Registrar Copias">
+        <Text style={styleshome.label}>Cantidad de Copias Certificadas</Text>
+        <TextInput 
+          style={styleshome.inputField} 
+          keyboardType="numeric"
+          value={copias}
+          onChangeText={setCopias}
+        />
+        <TouchableOpacity 
+          style={[styleshome.buttonGuardar, { backgroundColor: '#81d659', marginTop: 20 }]} 
+          onPress={saveCopy}
+        >
+          <Text style={styleshome.buttonText}>Guardar Copias</Text>
+        </TouchableOpacity>
       </CustomModal>
     </ScrollView>
       {SearchFil.length === 0 &&(
