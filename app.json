@@ -16,7 +16,8 @@
       "supportsTablet": true
     },
     "android": {
-      "package": "com.ailen11.geoact",
+      "package": "com.company.GeoAct",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/geoacta.png",
         "backgroundColor": "#9BB1A4"
