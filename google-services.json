@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "575071320252",
+    "project_id": "geoact-6e772",
+    "storage_bucket": "geoact-6e772.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:575071320252:android:24dd257672a66263d938b9",
+        "android_client_info": {
+          "package_name": "com.company.GeoAct"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCr8Ub6UTCi9eCitfPZHwamfGtnKrLkUgM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
