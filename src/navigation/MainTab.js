@@ -11,6 +11,7 @@ import MetaPOA from '../screens/MetaPOA';
 
 
   const Tab = createBottomTabNavigator();
+  
   export default function MyTab() {
   return (
     <Tab.Navigator initialRouteName='Home'>
