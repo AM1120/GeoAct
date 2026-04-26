@@ -52,6 +52,7 @@ export const styleshome = StyleSheet.create({
         alignItems: 'center',
         elevation: 5,
     },
+    //sección para el perfil
     profileImage: {
         width: 100,
         height: 100,
@@ -60,14 +61,27 @@ export const styleshome = StyleSheet.create({
         borderColor: '#4A90E2',
     },
     userName: {
-        fontSize: 20,
+        fontSize: 15,
         fontWeight: 'bold',
         marginTop: 10,
     },
     userEmail: {
-        fontSize: 16,
+        fontSize: 15,
         color: '#666',
     },
+    cardProfile: {
+        backgroundColor: '#FFF',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        elevation: 3, // Sombra en Android
+        shadowColor: '#000', // Sombra en iOS
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+},
     separator: {
         height: 1,
         backgroundColor: '#ccc',
@@ -178,7 +192,7 @@ totalCard: {
     shadowOpacity: 0.1,
   },
 
-  // Estilo del texto "Actas Totales"
+
   cardLabel: { 
     fontSize: 22, 
     fontWeight: '500', 
@@ -186,9 +200,8 @@ totalCard: {
     lineHeight: 28,         
   },
 
-  // El círculo/óvalo que contiene el número (Verde oliva)
   numberBadge: { 
-    backgroundColor: '#9BB1A4', // Color verde 
+    backgroundColor: '#9BB1A4', 
     borderRadius: 50,          
     paddingHorizontal: 25, 
     paddingVertical: 15,
@@ -197,9 +210,8 @@ totalCard: {
     justifyContent: 'center',
   },
 
-  // El número "00"
   totalNumber: { 
-    fontSize: 48,               // Tamaño grande y legible
+    fontSize: 48,               
     fontWeight: 'bold', 
     color: '#000', 
   },
@@ -232,8 +244,105 @@ actaDetalle: {
   fontWeight: '600',
 },
 actionIcon: {
-  width: 24,
-  height: 24,
+  width: 25,
+  height: 25,
   tintColor: '#C2D5E8',
-}
+},
+
+//sección de MetaPOA
+subtitlePOA: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+},
+graphContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 5,
+  },
+  percentageWrapper: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  percentageText: {
+    fontSize: 50,
+    fontWeight: '300', // Más delgado como tu imagen
+    fontFamily: 'monospace', // Para un look administrativo
+    color: '#000',
+  },
+  cardsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  card: {
+    width: '48%', // Dos tarjetas por fila
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    minHeight: 250,
+  },
+  shadow: {
+    // Sombra para Android
+    elevation: 3,
+  },
+  cardTitle: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 20,
+    fontWeight: '400',
+    fontFamily: 'monospace',
+  },
+  dataRow: {
+    marginBottom: 15,
+  },
+  rowNumber: {
+    fontSize: 30,
+    fontFamily: 'monospace',
+    color: '#000',
+  },
+  rowLabel: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: -5,
+  },
+  filterContainer: {
+    padding: 15,
+    alignItems: 'center',
+  },
+  filterLabel: {
+    fontFamily: 'monospace',
+    fontSize: 12,
+    marginBottom: 10,
+    color: '#666',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    backgroundColor: '#eee',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  filterButtonActive: {
+    backgroundColor: '#829682', // El verde de tu gráfica
+    borderColor: '#829682',
+  },
+  filterButtonText: {
+    fontFamily: 'monospace',
+    color: '#333',
+  },
+  filterButtonTextActive: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
 });

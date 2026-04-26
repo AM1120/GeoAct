@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, Switch, ScrollView } from "react-native";
 import { styleshome } from "../../src/styles/styleshome";
 import { auth, db } from "../firebaseConfig";
 import { signOut } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 
 import CustomModal from "./components/Modal";
 import { stylesmodal } from "../styles/stylesmodal";
@@ -14,6 +15,11 @@ export default function Ajustes() {
 
   const [mo, setMo] = useState(false);
 
+  const [userNombre, setUserNombre] = useState("");
+  const [newUserNombre, setNewUserNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+    
 
   const handleLogout = async () => {
   try {
@@ -28,26 +34,52 @@ export default function Ajustes() {
 
   }
 };
+useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const docSnap = await getDoc(userRef);
 
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+
+            setUserNombre(data.nombre || user.displayNombre || "Usuario");
+            setNewUserNombre(data.nombre || user.displayNombre || "Usuario");
+            setEmail(data.email || user.email);
+            setNewEmail(data.email || user.email);
+          }
+        } catch (error) {
+          console.error("Error al obtener perfil:", error);
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
 
   return (
     <View style={styleshome.body}>        
-    <Text style={styleshome.title}>Ajustes</Text>
       <View style={styleshome.container}>
+        <Text style={styleshome.title}>Ajustes</Text>
 
         
         {/* Sección de Perfil */}
         <View style={{ alignItems: 'center', marginTop: 20 }}>
-          <Image 
-            source={require('../../assets/IconAjuste.png')} 
-            style={styleshome.profileImage} 
-          />
-          <Text style={styleshome.userName}>Juan Pérez</Text>
-          <Text style={styleshome.userEmail}>juan.perez@ejemplo.com</Text>
         </View>
-
         <View style={styleshome.separator} />
+          <Text style={styleshome.optionText}>Datos de Usuario</Text>
+      <View style={styleshome.containerGrey}>
+        <Text style={styleshome.userName}> {userNombre} </Text>
+        <TouchableOpacity onPress={() => {}}>
+          <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon, {flexDirection: 'row'}} />
+        </TouchableOpacity>
 
+        <Text style={styleshome.userEmail}>{email}</Text>
+          <TouchableOpacity onPress={() => {}}>
+          <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon, {flexDirection: 'row' }} />
+        </TouchableOpacity>
+        </View>
         {/* El contenedor gris del prototipo */}
         <View style={styleshome.containerGrey}>
           
@@ -61,15 +93,6 @@ export default function Ajustes() {
             />
           </View>
 
-          <View style={styleshome.optionLeft}>
-            <Text style={styleshome.optionText}>Notificaciones</Text>
-            <Switch
-              value={notifications}
-              onValueChange={setNotifications}
-              trackColor={{ false: "#657e8dff", true: "#5c9bd1" }}
-              thumbColor={"#fff"}
-            />
-          </View>
 
           <TouchableOpacity style={[styleshome.optionLeft, { marginTop: 20 }]}>
             <Text style={styleshome.optionText}>Acerca de la Aplicación</Text>
@@ -81,11 +104,11 @@ export default function Ajustes() {
           </TouchableOpacity>
           
 
-          <CustomModal visible={mo} onClose={() => setMo(false)}>
+          <CustomModal visible={mo} onClose={() => setMo(false)} title="Cerrar Sesión">
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>          
                 {/* sección del modal*/}
                 <View style={{ zIndex: 2000 }}> 
-                    <Text style={styleshome.title}>Está seguro de cerrar sesión</Text>
+                    <Text style={styleshome.label}>¿Está seguro de cerrar sesión?</Text>
                     <TouchableOpacity 
                       style={styleshome.buttonGuardar} 
                       onPress={handleLogout}

@@ -14,6 +14,9 @@ const [dataSemanal, setDataSemanal] = useState(null);
 const [dataMensual, setDataMensual] = useState(null);
 const [filtro, setFiltro] = useState("mes");
 
+const [copiasSemanal, setCopiasSemanal] = useState(null);
+const [copiasMensual, setCopiasMensual] = useState(null);
+
 const [actasFiltradas, setActasFiltradas] = useState([]); // Estado local para actas filtradas
 
 
@@ -28,49 +31,65 @@ useEffect(() => {
   );
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
-  const actas = snapshot.docs.map(doc => doc.data());
-  const mesActual = new Date().getMonth() + 1;
+        const actas = snapshot.docs.map(doc => doc.data());
+        const mesActual = new Date().getMonth() + 1;
 
-  // 1. FILTRAR: Solo actas del mes actual
-  const actasDelMes = actas.filter(a => a.stats.mes === mesActual);
+        // 1. REINICIAR TODOS LOS CONTADORES (Variables locales)
+        const conteoSemanas = { "Sem 1": 0, "Sem 2": 0, "Sem 3": 0, "Sem 4": 0, "Sem 5": 0 };
+        const conteoCopiasSemanas = { "Sem 1": 0, "Sem 2": 0, "Sem 3": 0, "Sem 4": 0, "Sem 5": 0 };
+        
+        const mesesArr = new Array(12).fill(0);     // Para solicitudes anuales
+        const mesesArrCopy = new Array(12).fill(0); // Para copias anuales
 
-  // 2. INICIALIZAR: Si no pones los ceros primero, el IF de abajo falla
-  const conteoSemanas = { "Sem 1": 0, "Sem 2": 0, "Sem 3": 0, "Sem 4": 0, "Sem 5": 0 };
+        // 2. UN SOLO RECORRIDO PARA TODA LA DATA
+        actas.forEach(a => {
+          const m = a.stats?.mes;
+          const nCopias = parseInt(a.cantCopy || 0);
 
-  // 3. CONTAR: Usamos un pequeño truco para convertir el 14 en semana del mes
-  // o simplemente leemos el campo si ya lo tienes como 1-5
-  actasDelMes.forEach(a => {
-    // Si tu 'stats.semana' es del año (ej. 14), hay que calcular su semana del mes.
-    // Si ya es del 1 al 5, solo haz: const numSemana = a.stats.semana;
-    const numSemana = a.stats.semana > 5 ? Math.ceil(a.stats.diaDelMes / 7) : a.stats.semana;
-    
-    const llave = `Sem ${numSemana}`;
-    if (conteoSemanas[llave] !== undefined) {
-      conteoSemanas[llave]++;
-    }
-  });
+          // --- PROCESAMIENTO MENSUAL (ANUAL) ---
+          if (m >= 1 && m <= 12) {
+            mesesArr[m - 1]++;             // Suma 1 trámite al mes correspondiente
+            mesesArrCopy[m - 1] += nCopias; // SUMA la cantidad de copias, no solo 1
+          }
 
-  setDataSemanal({
-    labels: Object.keys(conteoSemanas),
-    datasets: [{ 
-      data: Object.values(conteoSemanas)
-    }]
-  });
+          // --- PROCESAMIENTO SEMANAL (SOLO MES ACTUAL) ---
+          if (m === mesActual) {
+            const numSemana = a.stats?.semana > 5 ? Math.ceil(a.stats.diaDelMes / 7) : a.stats.semana;
+            const llave = `Sem ${numSemana}`;
 
-      // --- PROCESAR MENSUAL ---
-  const mesesArr = new Array(12).fill(0);
-    actas.forEach(a => {
-      if (a.stats.mes) mesesArr[a.stats.mes - 1]++;
-    });
+            if (conteoSemanas[llave] !== undefined) {
+              conteoSemanas[llave]++;              // Conteo de trámites
+              conteoCopiasSemanas[llave] += nCopias; // Suma de copias
+            }
+          }
+        });
 
-    setDataMensual({
-      labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
-      datasets: [{ data: mesesArr }]
-    });
-  });
+        // 3. GUARDAR ESTADOS DE SOLICITUDES
+        setDataSemanal({
+          labels: Object.keys(conteoSemanas),
+          datasets: [{ data: Object.values(conteoSemanas) }]
+        });
 
-  return () => unsubscribe();
-}, []);
+        setDataMensual({
+          labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+          datasets: [{ data: mesesArr }]
+        });
+
+        // 4. GUARDAR ESTADOS DE COPIAS
+        setCopiasSemanal({
+          labels: Object.keys(conteoCopiasSemanas),
+          datasets: [{ data: Object.values(conteoCopiasSemanas) }]
+        });
+
+        setCopiasMensual({
+          labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"],
+          datasets: [{ data: mesesArrCopy }]
+        });
+      });
+
+      return () => unsubscribe();
+    }, []);
+
 
 
 // CONFIGURACIÓN VISUAL MEJORADA
@@ -83,6 +102,11 @@ const chartConfig = {
   labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
   style: { borderRadius: 16 },
   propsForDots: { r: "6", strokeWidth: "2", stroke: "#ffa726" }
+};
+
+const chartConfigCopias = {
+  ...chartConfig,
+  color: (opacity = 1) => `rgba(34, 177, 76, ${opacity})`, // Verde para copias
 };
 
 useEffect(() => {
@@ -111,6 +135,7 @@ useEffect(() => {
 }, [filtro]); 
 
 return(
+  <ScrollView>
       <View style={styleshome.body}>
       <View style={styleshome.container}>
       <Text style={styleshome.title}>Estadísticas de Actas</Text>
@@ -139,11 +164,11 @@ return(
         </>
     )}
 
-        {dataMensual && (
-        <>
-        <Text style={styleshome.label}>
-        Registro mensual
-        </Text>
+    {dataMensual && (
+    <>
+    <Text style={styleshome.label}>
+    Registro mensual
+    </Text>
 
     <BarChart
         data={dataMensual}
@@ -154,7 +179,6 @@ return(
         segments={3}
         chartConfig={{
     ...chartConfig,
-    // 3. ESTILO: Reduce un poco la fuente de las etiquetas X para que quepa "Dic"
     propsForLabels: {
       fontSize: 10,
     },
@@ -174,7 +198,68 @@ return(
         />
         </>
     )}
+
+    {copiasSemanal && (
+    <>
+    <Text style={styleshome.label}>
+    Registro semanal de Copias Certificadas
+    </Text>
+
+    <BarChart
+        data={copiasSemanal}
+        width={screenWidth-60}
+        height={220}
+        yAxisLabel=""
+        segments={3}
+        chartConfig={chartConfigCopias}
+        fromZero={true}
+        showValuesOnTopOfBars={true}
+        style={{
+          marginVertical:8,
+          borderRadius:16,
+          marginLeft: -20,
+        }}
+        />
+        </>
+    )}
+    {copiasMensual && (
+    <>
+    <Text style={styleshome.label}>
+    Registro mensual de Copias Certificadas
+    </Text>
+
+    <BarChart
+        data={copiasMensual}
+        width={screenWidth-80}
+        height={230}
+        yAxisLabel=""
+        yAxisSuffix=""
+        segments={3}
+        chartConfig={{
+    ...chartConfigCopias,
+    propsForLabels: {
+      fontSize: 10,
+    },
+    decimalPlaces: 0,
+    barPercentage:0.5,
+  }}
+        verticalLabelRotation={90}
+        fromZero={true}
+        showValuesOnTopOfBars={true}
+        style={{
+          marginVertical:15,
+          borderRadius:16,
+          paddingRight: 0,
+          marginLeft: -10,
+          alignSelf: 'center', 
+        }}
+        />
+        </>
+    )}
+
+
     </View>
     </View>
+  </ScrollView>
 );
 }

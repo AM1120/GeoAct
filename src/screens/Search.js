@@ -89,7 +89,7 @@ export default function Search() {
       Alert.alert("Error", "No se pudo actualizar.");
     }
   };
-  
+
 const saveCopy = async () => {
     // 1. Validación básica
     if (!copias || isNaN(parseInt(copias))) {
@@ -142,8 +142,8 @@ const saveCopy = async () => {
 
   return (
   <View style={styleshome.body}>
-    <Text style={styleshome.title}>Búsqueda</Text>
       <View style={styleshome.container}>
+          <Text style={styleshome.title}>Búsqueda</Text>
 
             <View style={stylesSearch.searchContainer}>
               <Image source={(require('../../assets/searche.png'))} style={stylesSearch.searchIcon} />
