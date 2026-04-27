@@ -1,6 +1,5 @@
-import { initializeApp, getApps } from "firebase/app";
-import {initializeAuth, getReactNativePersistence
-} from "firebase/auth";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {initializeAuth, getReactNativePersistence, getAuth} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -14,13 +13,24 @@ const firebaseConfig = {
   measurementId: "G-RJXGSQE1QV"
 };
 
-const app = getApps().length === 0
-  ? initializeApp(firebaseConfig)
-  : getApps()[0];
+// 1. Inicializar la App de forma segura
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
+// 2. Inicializar Auth de forma segura para APK
+let auth;
+if (getApps().length > 0) {
+    try {
+        auth = getAuth(app);
+    } catch (error) {
+        auth = initializeAuth(app, {
+            persistence: getReactNativePersistence(AsyncStorage),
+        });
+    }
+} else {
+    auth = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+    });
+}
 
-export const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
-
-export const db = getFirestore(app)
+export const db = getFirestore(app);
+export { auth };
