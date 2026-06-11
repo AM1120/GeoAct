@@ -15,8 +15,8 @@ export default function Ajustes() {
 
   const [mo, setMo] = useState(false);
 
-  const [userNombre, setUserNombre] = useState("");
-  const [newUserNombre, setNewUserNombre] = useState("");
+  const [userName, setUserName] = useState("");
+  const [newUserName, setNewUserName] = useState("");
   const [email, setEmail] = useState("");
   const [newEmail, setNewEmail] = useState("");
     
@@ -34,6 +34,7 @@ export default function Ajustes() {
 
   }
 };
+
 useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
@@ -45,8 +46,9 @@ useEffect(() => {
           if (docSnap.exists()) {
             const data = docSnap.data();
 
-            setUserNombre(data.nombre || user.displayNombre || "Usuario");
-            setNewUserNombre(data.nombre || user.displayNombre || "Usuario");
+            setUserName(data.nombre || user.displayNombre || "Usuario");
+            setNewUserName(data.nombre || user.displayNombre || "Usuario");
+
             setEmail(data.email || user.email);
             setNewEmail(data.email || user.email);
           }
@@ -70,7 +72,7 @@ useEffect(() => {
         <View style={styleshome.separator} />
           <Text style={styleshome.optionText}>Datos de Usuario</Text>
       <View style={styleshome.containerGrey}>
-        <Text style={styleshome.userName}> {userNombre} </Text>
+        <Text style={styleshome.userName}> {userName} </Text>
         <TouchableOpacity onPress={() => {}}>
           <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon, {flexDirection: 'row'}} />
         </TouchableOpacity>

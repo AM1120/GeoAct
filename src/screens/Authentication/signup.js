@@ -1,17 +1,16 @@
+import { db, auth } from '../../firebaseConfig';
+import {doc, setDoc} from 'firebase/firestore';
+import Login from './login';
 import React, { useState } from 'react';
 import { 
   Text, View, TextInput, TouchableOpacity, 
   SafeAreaView, KeyboardAvoidingView, Platform, Image, Alert, ScrollView
 } from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
-
-// Importamos la configuración que ya tienes lista
-import { db, auth } from '../../firebaseConfig';
-import {doc, setDoc} from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { NavigationContainer } from '@react-navigation/native';
 import { useNavigation } from '@react-navigation/native';
-import Login from './login';
+
 
 import { sendEmailVerification } from 'firebase/auth';
 

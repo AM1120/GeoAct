@@ -49,7 +49,7 @@ export default function Search() {
 
       setActas(docs);
     });
-    return () => unsubscribe();
+    return () => {unsubscribe();}; 
   }, []);
 
   // Función para abrir el modal con los datos cargados

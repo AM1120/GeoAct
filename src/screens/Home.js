@@ -33,7 +33,7 @@ export default function Home() {
     ciudadano: '',
     nroActa: '',
     nroTomo: '',
-    registrador: selectedRegistrador,
+    nombre_registrador: selectedRegistrador,
     descripcion: '',
   });
 
@@ -46,7 +46,7 @@ export default function Home() {
     const unsubscribe =onSnapshot(q, (snapshot) => {
       setTotalActas(snapshot.size);
     });
-    return () => unsubscribe();
+    return () => {unsubscribe();}; 
   }, []);
 
 useEffect(() => {
@@ -65,7 +65,7 @@ useEffect(() => {
         setSelectedRegistrador(nombre);
         setFormData(prev => ({
           ...prev,
-          registrador: nombre,
+          nombre_registrador: nombre,
         }));
       }
     } catch (error) {
@@ -207,7 +207,7 @@ const unsubscribe = onSnapshot(q, (snapshot) => {
     console.error("Error en el listener:", error);
   });
 
-  return () => unsubscribe();
+ return () => {unsubscribe();}; 
 }, []);
 
   return (

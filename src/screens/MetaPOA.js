@@ -79,14 +79,14 @@ export default function POA() {
         setLoading(false);
       });
 
-      return () => unsubscribeActas();
+      return () => {unsubscribeActas();}; // Limpieza del listener de actas cuando cambie el trimestre o año para evitar datos desactualizados
     }, (error) => {
       console.error("Error al escuchar POA:", error);
       setLoading(false);
     });
 
-    return () => unsubscribePoa();
-  }, [trimestre,anio]); // Re-escucha si cambia trimestre o año
+    return () => {unsubscribePoa();}; //permite hacer una limpieza de los listeners para evitar fugas de memoria o datos desactualizados
+}, [trimestre,anio]); // Re-escucha si cambia trimestre o año
 
   if (loading) {
     return <ActivityIndicator size="large" color="#4A90E2" style={{ marginTop: 100 }} />;

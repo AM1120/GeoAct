@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView,KeyboardAvoidingView,Platform, Image, Alert, ScrollView} from 'react-native';
 import { stylesauth } from '../../styles/stylesauth';
 import {createUserWithEmailAndPassword, sendPasswordResetEmail, signInWithEmailAndPassword} from 'firebase/auth'
-import { auth } from '../../firebaseConfig';
-import { db } from '../../firebaseConfig';
+import { auth, db } from '../../firebaseConfig';
+
 
 export default function Login({ navigation, onLogin }) {
   const [email, setEmail] = useState('');
@@ -89,9 +89,7 @@ export default function Login({ navigation, onLogin }) {
         >
         {/*Logo de GeoAct */}
         <View style={stylesauth.logoContainer}>
-          <View>
             <Image source={(require('../../../assets/geoacta.png'))}  style={stylesauth.logoCircle} />
-          </View>
         </View>
 
         <Text style={stylesauth.welcomeText}>Bienvenido</Text>

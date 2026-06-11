@@ -1,8 +1,11 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import {initializeAuth, getReactNativePersistence, getAuth} from "firebase/auth";
+import { getAuth, initializeAuth, getReactNativePersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import ReactNativeAsyncStorage from "@react-native-async-storage/async-storage";
 
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyC2ikm9zhCKfNFCWX45a_nFIGWVzhKBWag",
   authDomain: "geoact-6e772.firebaseapp.com",
@@ -13,24 +16,13 @@ const firebaseConfig = {
   measurementId: "G-RJXGSQE1QV"
 };
 
-// 1. Inicializar la App de forma segura
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// 2. Inicializar Auth de forma segura para APK
-let auth;
-if (getApps().length > 0) {
-    try {
-        auth = getAuth(app);
-    } catch (error) {
-        auth = initializeAuth(app, {
-            persistence: getReactNativePersistence(AsyncStorage),
-        });
-    }
-} else {
-    auth = initializeAuth(app, {
-        persistence: getReactNativePersistence(AsyncStorage),
-    });
-}
+// Robustez: Inicializamos Auth con persistencia de una forma más directa
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage),
+});
 
-export const db = getFirestore(app);
-export { auth };
+const db = getFirestore(app);
+
+export { auth, db };
