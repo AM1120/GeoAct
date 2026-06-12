@@ -137,6 +137,11 @@ export const styleshome = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    inputFieldActive: {
+      borderColor: '#4A90E2',
+      borderBottomLeftRadius: 0,
+      borderBottomRightRadius: 0,
+    },
     inputText: {
         fontFamily: 'monospace',
         color: '#333',
@@ -160,23 +165,35 @@ export const styleshome = StyleSheet.create({
     },
     dropdownContainer: {
         position: 'absolute',
-        top: 55, 
+        top: 75, // Se acomoda perfecto justo debajo de tu campo de texto
         left: 0,
         right: 0,
         backgroundColor: '#ffffff',
         borderWidth: 1,
         borderColor: '#444',
         borderRadius: 10,
-        maxHeight: 150,
-        zIndex: 5000, 
-        elevation: 5, 
-        overflow: 'hidden',
+        // 🛠️ CORRECCIÓN 1: Subimos la altura máxima a 220px para que entren las 5 actas o más
+        maxHeight: 600, 
+        zIndex: 9999, // Prioridad absoluta por encima de los inputs de abajo
+        elevation: 6, // Sombra fuerte en Android
+        shadowColor: '#000', // Sombra en iOS
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        // 🛠️ CORRECCIÓN 2: Cambiamos a 'visible' en el eje superior para que Android no congele los clics
+        overflow: 'hidden', 
     },
     dropdownItem: {
-        padding: 12,
-        borderBottomWidth: 0.5,
-        borderBottomColor: '#999',
-},
+        paddingVertical: 12, // Espacio ideal para la yema del dedo
+        paddingHorizontal: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
+        width: '100%',
+    },
+    arrowIcon: {
+      fontSize: 14,
+      color: '#666',
+    },
 totalCard: { 
     backgroundColor: '#D9D9D9', // Color gris 
     borderRadius: 30, 

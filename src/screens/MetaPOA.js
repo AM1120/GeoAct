@@ -1,12 +1,33 @@
-import { collection, query, onSnapshot, where, doc, setDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { 
+  View, 
+  Text, 
+  Dimensions, 
+  ScrollView, 
+  ActivityIndicator, 
+  TouchableOpacity, 
+  Image, 
+  TextInput 
+} from "react-native";
 import { ProgressChart } from "react-native-chart-kit"; 
-import { View, Text, Dimensions, ScrollView, ActivityIndicator, styleshomeheet, TouchableOpacity, Image, TextInput } from "react-native";
+
+// Estilos e Inyecciones de Componentes
 import { styleshome } from "../styles/styleshome";
 import { stylesmodal } from "../styles/stylesmodal";
 import CustomModal from "./components/Modal";
-import {Picker} from "@react-native-picker/picker";
+
+// Importaciones de Firebase
+import { db } from "../firebaseConfig";
+import { 
+  collection, 
+  query, 
+  onSnapshot, 
+  where, 
+  doc, 
+  setDoc, 
+  orderBy, 
+  getDocs 
+} from "firebase/firestore";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -24,105 +45,178 @@ export default function POA() {
   const [selectedOption, setSelectedOption] = useState("Seleccionar tipo de acta");
   const [metaValue, setMetaValue] = useState("");
   const [mostrarListado, setMostrarListado] = useState(false);
+  const [opciones, setOpciones] = useState([]); 
 
+  // 1. Cargar catálogo estático de tipos de actas disponibles
+  useEffect(() => {
+    const obtenerDatos = async () => {
+      try {
+        const qActas = query(collection(db, "tipo_actas"), orderBy("nombre", "asc"));
+        const snapshotActas = await getDocs(qActas);
+        setOpciones(snapshotActas.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Error al obtener tipos de actas: ", error);
+      }
+    };
+    obtenerDatos();
+  }, []);
+
+    // Limpieza absoluta del modal y selectores visuales
+  const cerrarModal = () => {
+    setMo(false);
+    setSelectedOption("Seleccionar...");
+    setMostrarListado(false);
+  };
+
+  // 2. Listener en Tiempo Real para Metas y Seguimiento
   useEffect(() => {
     setLoading(true);
-    // 1. Escuchamos las METAS
+
     const qPoa = query(
       collection(db, "poa"),
-      where("trimestre", "==", trimestre),
-      where("anio", "==", anio)
+      where("trimestre", "==", Number(trimestre)),
+      where("anio", "==", Number(anio))
     );
+
+    const qActas = query(
+      collection(db, "registro_solicitud"),
+      where("stats.trimestre", "==", Number(trimestre)),
+      where("stats.anio", "==", Number(anio))
+    );
+
+    let metasMapAux = { nacimientos: 0, matrimonios: 0, defunciones: 0, otros: 0 };
+    let segMapAux = { nacimientos: 0, matrimonios: 0, defunciones: 0, otros: 0 };
+
+    const calcularTotalesYProgreso = (metas, seguimiento) => {
+      const sumaMetas = metas.nacimientos + metas.matrimonios + metas.defunciones + metas.otros;
+      const sumaSeg = seguimiento.nacimientos + seguimiento.matrimonios + seguimiento.defunciones + seguimiento.otros;
+      
+      const resultadoCalculado = sumaMetas > 0 ? sumaSeg / sumaMetas : 0;
+      setPorcentajeTexto(resultadoCalculado);
+      setPorcentajeGlobal(resultadoCalculado > 1 ? 1 : resultadoCalculado);
+    };
 
     const unsubscribePoa = onSnapshot(qPoa, (snapshotPoa) => {
       const metasMap = { nacimientos: 0, matrimonios: 0, defunciones: 0, otros: 0 };
       snapshotPoa.docs.forEach(doc => {
         const d = doc.data();
-        if (d.tipoActa.includes("Nacimiento")) metasMap.nacimientos = d.meta;
-        else if (d.tipoActa.includes("Matrimonio")) metasMap.matrimonios = d.meta;
-        else if (d.tipoActa.includes("Defunción")) metasMap.defunciones = d.meta;
-        else metasMap.otros = d.meta;
+        const valormeta = Number(d.meta) || 0; // Asegura que sea un número, incluso si el campo es una cadena vacía o no existe
         
-      });
+        if (d.tipoActa && d.tipoActa.includes("Nacimiento")) {
+              metasMap.nacimientos = valormeta;
+            } else if (d.tipoActa && d.tipoActa.includes("Matrimonio")) {
+              metasMap.matrimonios = valormeta;
+            } else if (d.tipoActa && d.tipoActa.includes("Defunción")) {
+              metasMap.defunciones = valormeta;
+            } else {
+              metasMap.otros += valormeta; 
+            }
+          });
+      metasMapAux = metasMap;
       setMetasTotal(metasMap);
+      calcularTotalesYProgreso(metasMapAux, segMapAux);
+    }, (error) => console.error("Error en Metas:", error));
 
+    const unsubscribeActas = onSnapshot(qActas, (snapshotActas) => {
+      const segMap = { nacimientos: 0, matrimonios: 0, defunciones: 0, otros: 0 };
       
+      snapshotActas.forEach((doc) => {
+        const d = doc.data();
+        
+        // Leemos el campo exacto que tu Home genera: 'tipoActa'
+        const nombreActa = d.tipoActa; 
 
-      // 2. Escuchamos los REGISTROS REALES (SEGUIMIENTO)
-      const qActas = query(
-        collection(db, "registro_solicitud"),
-        where("stats.trimestre", "==", trimestre),
-        where("stats.anio", "==", anio)
-      );
+        if (nombreActa && typeof nombreActa === "string") {
+          
+          if (nombreActa.includes("Nacimiento")) {
+            segMap.nacimientos++;
+          } else if (nombreActa.includes("Matrimonio")) {
+            segMap.matrimonios++;
+          } else if (nombreActa.includes("Defunción")) {
+            segMap.defunciones++;
+          } else {
+            // Al no ser ninguna de las anteriores, cualquier otra acta 
+            // (Residencia, Divorcio, Unión Estable) se sumará correctamente aquí.
+            segMap.otros++; 
+          }
 
-      const unsubscribeActas = onSnapshot(qActas, (snapshotActas) => {
-        const segMap = { nacimientos: 0, matrimonios: 0, defunciones: 0, otros: 0 };
-        snapshotActas.forEach((doc) => {
-          const d = doc.data();
-          if (d.tipoActa.includes("Nacimiento")) segMap.nacimientos++;
-          else if (d.tipoActa.includes("Matrimonio")) segMap.matrimonios++;
-          else if (d.tipoActa.includes("Defunción")) segMap.defunciones++;
-          else segMap.otros++;
-        });
-        setSeguimientoTotal(segMap);
-
-        // 3. Cálculo de Porcentaje Global
-        const sumaMetas = metasMap.nacimientos + metasMap.matrimonios + metasMap.defunciones + metasMap.otros;
-        const sumaSeg = segMap.nacimientos + segMap.matrimonios + segMap.defunciones + segMap.otros;
-        setPorcentajeGlobal(sumaMetas > 0 ? sumaSeg / sumaMetas : 0);
-
-        let resultadoGrafica = sumaMetas > 0 ? sumaSeg / sumaMetas : 0;
-        const porcentajeParaGrafica = resultadoGrafica >1 ? 1 : resultadoGrafica; // Con esto la gráfica y solamente la gráfica no se desbordará si el seguimiento supera la meta
-        setPorcentajeGlobal(porcentajeParaGrafica);
-
-        setPorcentajeTexto(resultadoGrafica);
-        setLoading(false);
+        }
       });
 
-      return () => {unsubscribeActas();}; // Limpieza del listener de actas cuando cambie el trimestre o año para evitar datos desactualizados
+      segMapAux = segMap;
+      setSeguimientoTotal(segMap);
+      calcularTotalesYProgreso(metasMapAux, segMapAux);
+      setLoading(false);
     }, (error) => {
-      console.error("Error al escuchar POA:", error);
+      console.error("Error en Seguimiento:", error);
       setLoading(false);
     });
 
-    return () => {unsubscribePoa();}; //permite hacer una limpieza de los listeners para evitar fugas de memoria o datos desactualizados
-}, [trimestre,anio]); // Re-escucha si cambia trimestre o año
+    return () => {
+      unsubscribePoa();
+      unsubscribeActas();
+    };
+  }, [trimestre, anio]);
 
-  if (loading) {
-    return <ActivityIndicator size="large" color="#4A90E2" style={{ marginTop: 100 }} />;
-  }
+  const guardarMetaPOA = async (anio, trimestre, tipo, cantidad) => {
+    if (!tipo || tipo === "Seleccionar tipo de acta" || !cantidad) {
+      alert("Por favor selecciona un tipo de acta y define una cantidad.");
+      return;
+    }
+    try {
+      const tipoLimpiado = tipo.normalize("NFD").replace(/\s+/g, ''); // Elimina espacios para el ID
+      const docId = `${anio}_T${trimestre}_${tipoLimpiado}`;
+
+      const valorNumerico = parseInt(cantidad, 10);
+    if (isNaN(valorNumerico)) {
+      alert("La cantidad ingresada no es un número válido.");
+      return;
+    }
+      await setDoc(doc(db, "poa", docId), {
+        anio: Number(anio),
+        trimestre: Number(trimestre),
+        tipoActa: tipo,
+        meta: valorNumerico,
+        fechaActualizacion: new Date()
+      });
+      alert("¡Meta guardada exitosamente!");
+      setMetaValue("");
+      setSelectedOption("Seleccionar tipo de acta");
+      cerrarModal();
+    } catch (error) {
+      console.error("Error al guardar meta: ", error);
+    }
+  };
+
+
+
+  const formatearNumero = (num) => {
+    if (num === undefined || num === null) return "00";
+    return num.toString().padStart(2, '0');
+  };
 
   const chartConfig = {
     backgroundColor: "#ffffff",
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => `rgba(130, 150, 130, ${opacity})`, // Verde grisáceo como tu imagen
+    color: (opacity = 1) => `rgba(130, 150, 130, ${opacity})`, 
     strokeWidth: 3,
     barPercentage: 0.5,
   };
 
-const guardarMetaPOA = async (anio, trimestre, tipo, cantidad) => {
-  try {
-    // Creamos un ID único para que no se dupliquen metas del mismo periodo
-    const docId = `${anio}_T${trimestre}_${tipo.replace(/\s+/g, '')}`;
-    
-    await setDoc(doc(db, "poa", docId), {
-      anio: Number(anio),
-      trimestre: Number(trimestre),
-      tipoActa: tipo,
-      meta: Number(cantidad),
-      fechaActualizacion: new Date()
-    });
-    
-    alert("¡Meta guardada exitosamente!");
-  } catch (error) {
-    console.error("Error al guardar meta: ", error);
+  if (loading) {
+    return <ActivityIndicator size="large" color="#4A90E2" style={{ marginTop: 100 }} />;
   }
-};
 
-const formatearNumero = (num) => {
-  if (num === undefined || num === null) return "00";
-  return num.toString().padStart(2, '0');
+
+  //control de caracteres y números no aceptados en el input
+  const handleCantidadChange = (text) => {
+  // Expresión regular que busca CUALQUIER cosa que NO sea un número del 0 al 9
+  // [^0-9] significa "todo lo que no sea un dígito"
+  const textoLimpio = text.replace(/[^0-9]/g, '');
+  
+  // Guardamos solo el número limpio en el estado
+  setMetaValue(textoLimpio);
 };
 
   return (
@@ -131,6 +225,7 @@ const formatearNumero = (num) => {
         <Text style={styleshome.title}>Plan Operativo Anual</Text>
         <Text style={styleshome.subtitlePOA}>T{trimestre} - {anio}</Text>
 
+        {/* Fila de Filtros Trimestrales */}
         <View style={styleshome.filterContainer}>
             <Text style={styleshome.filterLabel}>Seleccionar Trimestre:</Text>
             <View style={styleshome.buttonRow}>
@@ -154,68 +249,96 @@ const formatearNumero = (num) => {
             </View>
         </View>
 
-            <TouchableOpacity style={styleshome.buttonRegister} onPress={() => setMo(true)}>
-              <Image source={require('../../assets/IconSuma.png')} style={{width: 30, height: 30}} />
-            </TouchableOpacity>
+        {/* Botón flotante para Registrar */}
+        <TouchableOpacity style={styleshome.buttonRegister} onPress={() => setMo(true)}>
+          <Image source={require('../../assets/IconSuma.png')} style={{width: 30, height: 30}} />
+        </TouchableOpacity>
 
-            {/*Modal para registro de metas*/}
-            <CustomModal 
-            visible={mo} 
-            onClose={() => setMo(false)}
-            title="Registar Metas"
-            >
-              <Text style={stylesmodal.modalTitle}>Para T{trimestre}-{anio}</Text>
-<View style={{ zIndex: 2000, marginBottom: 10 }}> 
-    <Text style={styleshome.label}>Tipo de Acta</Text>
-    
-    <TouchableOpacity 
-        style={styleshome.inputField} 
-        onPress={() => setMostrarListado(!mostrarListado)}
-    >
-        <Text style={styleshome.inputText}>{selectedOption}</Text>
-        <Text>{mostrarListado ? "▲" : "▼"}</Text>
-    </TouchableOpacity>
+        {/* Modal de Registro de Metas */}
+        <CustomModal visible={mo} onClose={cerrarModal} title={`Registrar Meta`}>
+          <Text style={stylesmodal.modalTitle}>Para T{trimestre}-{anio}</Text>
+          
+          {/* CAMBIO CLAVE: ScrollView interno flexible para contener el espacio del modal */}
+          <ScrollView 
+            nestedScrollEnabled={true} 
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            style={{ width: '100%', maxHeight: 400 }}
+            contentContainerStyle={{ paddingBottom: 10 }}
+          >
+            <View style={styleshome.modalFormContainer}>
+              
+              {/* SECCIÓN DEL SELECTOR TIPO DE ACTA */}
+              <View style={{ zIndex: 99999, position: 'relative' }}> 
+                <Text style={styleshome.label}>Tipo de Acta</Text>
+                
+                <TouchableOpacity 
+                  style={[styleshome.inputField, mostrarListado && styleshome.inputFieldActive]} 
+                  onPress={() => setMostrarListado(!mostrarListado)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styleshome.inputText}>{selectedOption}</Text>
+                  <Text>{mostrarListado ? "▲" : "▼"}</Text>
+                </TouchableOpacity>
 
-          {mostrarListado && (
-              <View style={styleshome.dropdownContainer}>
-                  {["Acta de Defunción", "Acta de Matrimonio", "Acta de Nacimiento"].map((item) => (
-                      <TouchableOpacity 
-                          key={item} 
+                {/* LISTA DESPLEGABLE OPTIMIZADA */}
+                {mostrarListado && (
+                  <View style={styleshome.dropdownContainer}>
+                    <ScrollView 
+                      nestedScrollEnabled={true} 
+                      keyboardShouldPersistTaps="always"
+                      showsVerticalScrollIndicator={true}
+                      style={{ width: '100%' }}
+                    >
+                      {opciones.map((item) => (
+                        <TouchableOpacity 
+                          key={item.id} 
                           style={styleshome.dropdownItem}
                           onPress={() => {
-                              setSelectedOption(item); // Aquí asignas el valor para Firebase
-                              setMostrarListado(false); // Cierras la lista
+                            setSelectedOption(item.nombre);
+                            setMostrarListado(false);
                           }}
-                      >
-                          <Text style={styleshome.inputText}>{item}</Text>
-                      </TouchableOpacity>
-                  ))}
+                        >
+                          <Text style={[styleshome.inputText, { color: '#333' }]}>{item.nombre}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
-          )}
-      </View>
 
+              {/* UN SOLO ESPACIADOR LIMPIO CONTROLADO POR EL ESTADO */}
+              <View style={{ height: mostrarListado ? 165 : 20 }} />
+
+              {/* SECCIÓN INFERIOR DEL FORMULARIO */}
+              <View pointerEvents={mostrarListado ? 'none' : 'auto'} style={{ zIndex: 1 }}>
+                <Text style={styleshome.label}>Cantidad Meta</Text>
                 <TextInput 
                   placeholder="Cantidad meta (ej. 50)"
                   keyboardType="numeric"
                   value={metaValue}
-                  onChangeText={setMetaValue}
+                  onChangeText={handleCantidadChange}
                   style={styleshome.inputField}
+                  placeholderTextColor="#aaa"
                 />
 
                 <TouchableOpacity 
                   onPress={() => guardarMetaPOA(anio, trimestre, selectedOption, metaValue)}
                   style={styleshome.buttonGuardar}
+                  activeOpacity={0.8}
                 >
                   <Text style={styleshome.buttonText}>Establecer Meta</Text>
                 </TouchableOpacity>
+              </View>
 
-              
-            </CustomModal>
+            </View>
+          </ScrollView>
+        </CustomModal>
 
-        {/* --- GRÁFICA CIRCULAR DE PROGRESO --- */}
+        {/* Gráfica Circular de Progreso */}
         <View style={styleshome.graphContainer}>
           <ProgressChart
-            data={[porcentajeGlobal]} // Un solo anillo
+            data={[porcentajeGlobal]} 
             width={screenWidth - 60}
             height={200}
             strokeWidth={16}
@@ -231,10 +354,8 @@ const formatearNumero = (num) => {
           </View>
         </View>
 
-        {/* --- TARJETAS DE DATOS (Row) --- */}
+        {/* Tarjetas de Datos de Doble Columna */}
         <View style={styleshome.cardsRow}>
-          
-          {/* TARJETA META */}
           <View style={[styleshome.card, styleshome.shadow]}>
             <Text style={styleshome.cardTitle}>Meta</Text>
             <DataRow number={formatearNumero(metasTotal.nacimientos)} label="Nacimientos" />
@@ -243,7 +364,6 @@ const formatearNumero = (num) => {
             <DataRow number={formatearNumero(metasTotal.otros)} label="Otros" />
           </View>
 
-          {/* TARJETA SEGUIMIENTO */}
           <View style={[styleshome.card, styleshome.shadow]}>
             <Text style={styleshome.cardTitle}>Seguimiento</Text>
             <DataRow number={formatearNumero(seguimientoTotal.nacimientos)} label="Nacimientos" />
@@ -251,14 +371,13 @@ const formatearNumero = (num) => {
             <DataRow number={formatearNumero(seguimientoTotal.defunciones)} label="Defunciones" />
             <DataRow number={formatearNumero(seguimientoTotal.otros)} label="Otros" />
           </View>
-
         </View>
+
       </View>
     </ScrollView>
   );
 }
 
-// Componente pequeño reutilizable para las filas de datos
 const DataRow = ({ number, label }) => (
   <View style={styleshome.dataRow}>
     <Text style={styleshome.rowNumber}>{number}</Text>

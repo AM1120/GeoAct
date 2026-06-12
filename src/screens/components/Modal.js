@@ -9,9 +9,9 @@ const CustomModal = ({ visible, onClose, title, children }) => {
     return (
         <Modal 
             transparent={true} 
-            animationType="fade" // 'fade' suele verse más limpio para modales de registro
+            animationType="fade" 
             visible={visible}
-            onRequestClose={onClose} // Requerido para el botón 'atrás' en Android
+            onRequestClose={onClose} 
         >
             <View style={stylesmodal.modalContainer}>
                 <View style={stylesmodal.modalContent}>
@@ -31,10 +31,14 @@ const CustomModal = ({ visible, onClose, title, children }) => {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Contenedor del contenido */}
-                    <View style={stylesmodal.body}>
+                    <ScrollView 
+                        style={[stylesmodal.body, { width: '100%' }]} 
+                        nestedScrollEnabled={true} // Permite scrolls hijos como tu desplegable
+                        keyboardShouldPersistTaps="handled"
+                        showsVerticalScrollIndicator={false}
+                    >
                         {children}
-                    </View>
+                    </ScrollView>
                     
                 </View>
             </View>

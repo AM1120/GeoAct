@@ -6,6 +6,10 @@ export const stylesmodal = StyleSheet.create({
         backgroundColor: 'rgba(193, 210, 230, 0.85)', // Fondo azulado semitransparente
         justifyContent: 'center',
         alignItems: 'center',
+        width: '100%',
+        top: 10,
+        paddingVertical: 40,
+        overflow: 'hidden', // Evita que el contenido se salga del modal
     },
     modalContent: {
         width: '90%',

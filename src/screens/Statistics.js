@@ -5,6 +5,7 @@ import { BarChart } from "react-native-chart-kit";
 import { db } from "../../src/firebaseConfig";
 import { collection, query, getDocs, where, onSnapshot } from "firebase/firestore";
 import { styleshome } from "../styles/styleshome";
+import Filter from "./components/filter";
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -19,10 +20,12 @@ const [copiasMensual, setCopiasMensual] = useState(null);
 
 const [actasFiltradas, setActasFiltradas] = useState([]); // Estado local para actas filtradas
 
+const [mesfiltro, setMesFiltro] = useState(new Date().getMonth() + 1); // Filtro de mes, inicia con el mes actual
+
 
 useEffect(() => {
   const anioActual = new Date().getFullYear();
-  const mesActual = new Date().getMonth() + 1;
+
 
   // CONSULTA EN TIEMPO REAL
   const q = query(
@@ -32,7 +35,7 @@ useEffect(() => {
 
   const unsubscribe = onSnapshot(q, (snapshot) => {
         const actas = snapshot.docs.map(doc => doc.data());
-        const mesActual = new Date().getMonth() + 1;
+ 
 
         // 1. REINICIAR TODOS LOS CONTADORES (Variables locales)
         const conteoSemanas = { "Sem 1": 0, "Sem 2": 0, "Sem 3": 0, "Sem 4": 0, "Sem 5": 0 };
@@ -53,7 +56,7 @@ useEffect(() => {
           }
 
           // --- PROCESAMIENTO SEMANAL (SOLO MES ACTUAL) ---
-          if (m === mesActual) {
+          if (m === mesfiltro) {
             const numSemana = a.stats?.semana > 5 ? Math.ceil(a.stats.diaDelMes / 7) : a.stats.semana;
             const llave = `Sem ${numSemana}`;
 
@@ -88,7 +91,7 @@ useEffect(() => {
       });
 
       return () => unsubscribe();
-    }, []);
+    }, [mesfiltro]); // Vuelve a ejecutar cuando cambie el mes seleccionado
 
 
 
@@ -138,6 +141,7 @@ return(
   <ScrollView>
       <View style={styleshome.body}>
       <View style={styleshome.container}>
+        <Filter mesSeleccionado={mesfiltro} onSelectMonth={(mes) => setMesFiltro(mes)} />
       <Text style={styleshome.title}>Estadísticas de Actas</Text>
 
     {dataSemanal && (

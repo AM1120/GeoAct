@@ -5,7 +5,7 @@ import { View, Text, Image, StyleSheet, ImageBackground } from "react-native";
 export default function SplashScreen() {
   return (
     <ImageBackground
-      source={require("../../assets/Splash.png")}
+      source={require("../../assets/splash.png")}
       style={styles.fondo}
       resizeMode="cover"
     >
