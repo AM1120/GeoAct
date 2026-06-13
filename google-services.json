@@ -12,7 +12,20 @@
           "package_name": "com.company.GeoAct"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "575071320252-4v77od6gh09356u32fr11jecrnhudib4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.company.GeoAct",
+            "certificate_hash": "f4a48dd015a0d245c73662ff769e29352e328044"
+          }
+        },
+        {
+          "client_id": "575071320252-dtftqud5sifng8s3f7ml78i8hfs2n9t4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCr8Ub6UTCi9eCitfPZHwamfGtnKrLkUgM"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "575071320252-dtftqud5sifng8s3f7ml78i8hfs2n9t4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
