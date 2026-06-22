@@ -214,7 +214,7 @@ totalCard: {
     fontSize: 22, 
     fontWeight: '500', 
     color: '#333', 
-    lineHeight: 28,         
+    lineHeight: 30,         
   },
 
   numberBadge: { 
@@ -246,7 +246,7 @@ totalCard: {
   shadowOpacity: 0.1,
 },
 actaTipo: {
-  fontSize: 16,
+  fontSize: 20,
   fontWeight: 'bold',
   color: '#2C3E50',
 },
@@ -362,4 +362,38 @@ graphContainer: {
     color: '#fff',
     fontWeight: 'bold',
   },
+
+  //sección para al botón de purgar
+  botonPurgar: {
+    position: 'absolute',    // Hace que el botón flote
+    top: 40,                 // Distancia desde el borde superior de la pantalla (ajústalo según tu notch/StatusBar)
+    left: 15,                // Posicionado a la izquierda exacta
+    backgroundColor: '#C62828', // Rojo oscuro de advertencia/peligro
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    zIndex: 999,             // Forza a que el botón se dibuje por ENCIMA de cualquier tarjeta o fondo
+    elevation: 5,            // Sombra para Android
+    shadowColor: '#000',     // Sombra para iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+  },
+  textoPurgar: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  headerContenedor: {
+    marginTop: 50, // Le damos un margen superior al título para que no colisione visualmente con el botón
+    alignItems: 'center',
+  },
+  tituloSistema: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  subtitulo: {
+    fontSize: 14,
+    color: '#666',
+  }
 });

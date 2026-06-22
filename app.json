@@ -1,14 +1,14 @@
 {
   "expo": {
     "name": "GeoAct",
-    "slug": "geoact",
+    "slug": "GeoAct",
     "sdkVersion": "53.0.0",
-    "version": "1.0.3",
+    "version": "1.0.6",
     "orientation": "portrait",
     "icon": "./assets/geoacta.png",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/geoacta.png",
       "resizeMode": "contain",
       "backgroundColor": "#C9D9E8"
     },
@@ -19,7 +19,7 @@
       "package": "com.company.GeoAct",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/splash.png",
+        "foregroundImage": "./assets/geoacta.png",
         "backgroundColor": "#C9D9E8"
       },
       "edgeToEdgeEnabled": true
@@ -29,6 +29,16 @@
       "eas": {
         "projectId": "ad5bf988-10bb-4151-8abd-d906aa1cee70"
       }
+    },
+    "scheme": "geoact",
+    "plugins": [
+      "expo-web-browser"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/ad5bf988-10bb-4151-8abd-d906aa1cee70"
     }
   }
 }

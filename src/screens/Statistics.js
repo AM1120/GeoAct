@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, Dimensions } from "react-native";
 import { BarChart } from "react-native-chart-kit";
-
-import { db } from "../../src/firebaseConfig";
 import { collection, query, getDocs, where, onSnapshot } from "firebase/firestore";
+import { db, auth } from "../firebaseConfig";
 import { styleshome } from "../styles/styleshome";
 import Filter from "./components/filter";
 
@@ -24,6 +23,9 @@ const [mesfiltro, setMesFiltro] = useState(new Date().getMonth() + 1); // Filtro
 
 
 useEffect(() => {
+const usuariologeado = auth.currentUser;
+if (!usuariologeado) return;
+
   const anioActual = new Date().getFullYear();
 
 
@@ -113,6 +115,9 @@ const chartConfigCopias = {
 };
 
 useEffect(() => {
+  const usuariologeado = auth.currentUser;
+  if (!usuariologeado) return;
+
   const ahora = new Date();
   const anioActual = ahora.getFullYear();
   

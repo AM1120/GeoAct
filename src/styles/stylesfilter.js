@@ -18,7 +18,7 @@ export const stylesfilter = StyleSheet.create({
     shadowOpacity: 0.2,
   },
   buttonText: {
-    color: "#000000",
+    color: "#ffffff",
     fontWeight: "bold",
     fontSize: 20,
   },

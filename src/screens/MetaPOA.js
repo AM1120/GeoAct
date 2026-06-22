@@ -17,7 +17,7 @@ import { stylesmodal } from "../styles/stylesmodal";
 import CustomModal from "./components/Modal";
 
 // Importaciones de Firebase
-import { db } from "../firebaseConfig";
+import { db, auth } from '../firebaseConfig';
 import { 
   collection, 
   query, 
@@ -28,6 +28,13 @@ import {
   orderBy, 
   getDocs 
 } from "firebase/firestore";
+
+// Funciones de Exportación
+import { exportToPDF, exportToExcel } from "./utils/exporter";
+
+//imortación de función de purgado
+import { ejecutarRespaldoYPurgado } from "./utils/purgaRespaldo";
+
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -46,6 +53,7 @@ export default function POA() {
   const [metaValue, setMetaValue] = useState("");
   const [mostrarListado, setMostrarListado] = useState(false);
   const [opciones, setOpciones] = useState([]); 
+
 
   // 1. Cargar catálogo estático de tipos de actas disponibles
   useEffect(() => {
@@ -70,6 +78,9 @@ export default function POA() {
 
   // 2. Listener en Tiempo Real para Metas y Seguimiento
   useEffect(() => {
+    const usuariologeado = auth.currentUser;
+    if (!usuariologeado) return;
+  
     setLoading(true);
 
     const qPoa = query(
@@ -148,8 +159,7 @@ export default function POA() {
       calcularTotalesYProgreso(metasMapAux, segMapAux);
       setLoading(false);
     }, (error) => {
-      console.error("Error en Seguimiento:", error);
-      setLoading(false);
+      console.log("Error en seguimiento interceptado")
     });
 
     return () => {
@@ -222,6 +232,14 @@ export default function POA() {
   return (
     <ScrollView style={styleshome.body}>
       <View style={styleshome.container}>
+        {/* 1. BOTÓN DE PURGADO CONDICIONAL (FLOTANTE EN LA ESQUINA SUPERIOR IZQUIERDA) */}
+        <TouchableOpacity
+          style={styleshome.botonPurgar}
+          onPress={() => ejecutarRespaldoYPurgado(trimestre, anio, metasTotal, seguimientoTotal)}
+        >
+          {/* Un icono simple de papelera o texto tipo Pixel-Art según la estética de tu app */}
+          <Text style={styleshome.textoPurgar}>Purgar T-{trimestre}</Text>
+        </TouchableOpacity>
         <Text style={styleshome.title}>Plan Operativo Anual</Text>
         <Text style={styleshome.subtitlePOA}>T{trimestre} - {anio}</Text>
 
@@ -371,6 +389,22 @@ export default function POA() {
             <DataRow number={formatearNumero(seguimientoTotal.defunciones)} label="Defunciones" />
             <DataRow number={formatearNumero(seguimientoTotal.otros)} label="Otros" />
           </View>
+        </View>
+        {/* SECCIÓN DE EXPORTACIÓN POA (SOLO AUDITORÍA) */}
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 20, marginVertical: 20 }}>
+          <TouchableOpacity 
+            style={{ backgroundColor: "#D32F2F", padding: 12, borderRadius: 8, flex: 0.48, alignItems: 'center' }} 
+            onPress={() => exportToPDF(metasTotal, seguimientoTotal, trimestre, anio)}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>Exportar PDF</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={{ backgroundColor: "#2E7D32", padding: 12, borderRadius: 8, flex: 0.48, alignItems: 'center' }} 
+            onPress={() => exportToExcel(metasTotal, seguimientoTotal, trimestre, anio)}
+          >
+            <Text style={{ color: "#fff", fontWeight: "bold" }}>Exportar Excel</Text>
+          </TouchableOpacity>
         </View>
 
       </View>

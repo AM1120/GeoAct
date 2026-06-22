@@ -14,10 +14,7 @@ export const stylesauth = StyleSheet.create ({
   logoCircle: {
     width: 130,
     height: 130,
-    borderRadius: 65,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
+    resizeMode: 'contain',
   },
   welcomeText: {
     fontSize: 22,
@@ -55,6 +52,7 @@ export const stylesauth = StyleSheet.create ({
   input: {
     flex: 1,
     fontSize: 16,
+    color: "#000",
   },
   forgotButton: {
     alignSelf: 'flex-start',
@@ -87,4 +85,59 @@ export const stylesauth = StyleSheet.create ({
     fontWeight: 'bold',
   },
 
+  buttonGreen: {
+    backgroundColor: '#D1D9CD', // Verde pastel
+    width: '80%',
+    padding: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginBottom: 12, // Añadido un margen inferior para separar del divisor
+  },
+  buttonText: {
+    fontSize: 16,
+    color: '#444',
+    fontWeight: 'bold',
+  },
+  separatorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    verticalAlign: 'center',
+    width: '80%',
+    marginVertical: 15,
+  },
+  separatorLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#DDD', // Línea gris sutil
+  },
+  separatorText: {
+    marginHorizontal: 10,
+    color: '#888',
+    fontSize: 14,
+  },
+  buttonGoogle: {
+    flexDirection: 'row', // Por si agregas el icono de Google al lado del texto
+    backgroundColor: '#FFFFFF', 
+    width: '80%',
+    padding: 15,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0', // Borde gris muy suave
+    shadowColor: '#000',    // Un toque de sombra para que resalte el botón blanco
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  buttonTextGoogle: {
+    fontSize: 16,
+    color: '#555',
+    fontWeight: '600',
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10, // Espacio entre el icono y el texto
+  },
 });

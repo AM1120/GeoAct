@@ -69,25 +69,30 @@ export default function Home() {
   setFormData({ ...formData, [name]: textoLimpio });
 };
 
-  // Cargar perfil del Registrador autenticado
+// Cargar perfil del Registrador autenticado
   useEffect(() => {
-    const cargarNombreUsuario = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const user = auth.currentUser;
+    if (!user) return;
 
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const nombre = userSnap.data().nombre || "Registrador";
-          setSelectedRegistrador(nombre);
-        }
-      } catch (error) {
-        console.error("Error al obtener nombre del usuario:", error);
+    const userRef = doc(db, "users", user.uid);
+    
+    // 🛡️ El onSnapshot se ejecuta de forma directa (sin async/await dentro del useEffect)
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const nombre = docSnap.data().nombre || "Registrador";
+        setSelectedRegistrador(nombre); // Mantiene tu filtro intacto
+      } else {
+        console.log("El documento del usuario no existe en Firestore.");
+        setSelectedRegistrador("Registrador");
       }
-    };
-    cargarNombreUsuario();
+    }, (error) => {
+      // 🔑 Aquí es donde atrapamos el error "Missing or insufficient permissions"
+      // Cuando cierres sesión, este bloque se ejecutará en silencio sin colgar la app.
+      console.log("Error en el listener de Home interceptado de forma segura al desloguear.");
+    });
+
+    // IMPORTANTE: Devolvemos la función de limpieza para destruir el listener si el componente se desmonta
+    return () => unsubscribe();
   }, []);
 
   // Limpieza absoluta del modal y selectores visuales
@@ -116,14 +121,14 @@ export default function Home() {
       return;
     }
 
-    const usuarioActual = auth.currentUser;
-    if (!usuarioActual) {
+    const creador_uid = auth.currentUser;
+    if (!creador_uid) {
       alert("Usuario no autenticado.");
       return;
     }
 
     try {
-      // Verificar duplicados en tiempo real (Modo creación)
+      // Verificamos si existe un duplicado al momento de crear una solicitud
       if (!editId) {
         const qDuplicado = query(
           collection(db, "registro_solicitud"),
@@ -147,7 +152,7 @@ export default function Home() {
         nroTomo: formData.nroTomo,
         descripcion: formData.descripcion,
         nombre_registrador: selectedRegistrador,
-        creadorId: usuarioActual.uid,
+        creadorId: creador_uid.uid,
         cantCopy: 0,
         createdAt: serverTimestamp(),
         stats: {
@@ -211,14 +216,17 @@ if (editId) {
         name: `${nombreCortoActa}`,
         population: conteo[tipo],
         color: ["#93B1A5", "#62766E", "#284265", "#C3D1C2", "#D9D9D9", "#F0F0F0"][index % 6],
-        legendFontColor: "#555",
-        legendFontSize: 13
+        legendFontColor: "#ffffff",
+        legendFontSize: 15
       };
     });
   };
 
   // Listener principal en Tiempo Real (Filtrado eficiente por mes)
   useEffect(() => {
+    const usuariologeado = auth.currentUser;
+    if (!usuariologeado) return;
+
     setLoading(true);
     const anioActual = new Date().getFullYear();
 
@@ -245,7 +253,7 @@ if (editId) {
       setLoading(false);
     });
 
-    return () => { unsubscribe(); }; 
+    return () =>  unsubscribe(); 
   }, [mesfiltro]);
 
   return (

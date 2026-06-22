@@ -15,7 +15,10 @@ export const stylesSearch = StyleSheet.create({
     width: 40,
     height: 40,
     marginRight: 7,
-    opacity: 0.8
+    opacity: 0.8,
+    backgroundColor: '#E2E8F0',
+    padoding: 8,
+    borderRadius: 8,
   },
   searchInput: {
     flex: 1,

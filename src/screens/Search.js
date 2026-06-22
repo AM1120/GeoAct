@@ -36,6 +36,10 @@ export default function Search() {
   });
 
   useEffect(() => {
+    const usuariologeado = auth.currentUser;
+
+    if (!usuariologeado) return;
+    
     const q = query(collection(db, "registro_solicitud"));
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const docs = [];
@@ -43,6 +47,8 @@ export default function Search() {
         docs.push({ id: doc.id, ...doc.data() });
       });
       setActas(docs);
+    }, (error) => {
+      Alert.alert("Error", "No se pudieron cargar los registros.");
     });
     return () => unsubscribe();
   }, []);
@@ -193,7 +199,7 @@ export default function Search() {
                 <Text style={{fontSize: 10, color: '#999', marginTop: 2}}>Registrado por: {item.nombre_registrador || 'Desconocido'}</Text>
               </View>
               
-              <View style={{flexDirection: 'row', gap: 20}}>
+              <View style={{flexDirection: 'row', gap: 20, backgroundColor: '#fff', padding: 8, borderRadius: 10}}>
                 <View>
                   <TouchableOpacity onPress={() => handleOpenModal(item)}>
                     <Image source={require('../../assets/edit.png')} style={styleshome.actionIcon} />
